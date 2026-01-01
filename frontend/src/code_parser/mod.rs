@@ -86,6 +86,7 @@ impl CodeParser {
                                 &mut self.iter,
                             )
                         }
+                        closing_tag.clear();
                         return node;
                     }
                     _ => ParserError::error("Unexpected `>` tag", &mut self.iter),
@@ -94,6 +95,10 @@ impl CodeParser {
                     if let Some('>') = self.iter.peek() {
                         node.self_closing = true;
                         self.iter.next();
+
+                        if node.name.is_empty() {
+                            ParserError::error("Self-closing tag without name", &mut self.iter);
+                        }
                         return node;
                     }
                 }

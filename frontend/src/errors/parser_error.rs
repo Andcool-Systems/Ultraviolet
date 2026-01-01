@@ -43,13 +43,26 @@ impl ParserError {
             &buf[_error_char + 1..],
         );
 
+        let line_no = iter.vec.iter().collect::<String>()[0..iter_pos]
+            .chars()
+            .filter(|c| c.eq(&'\n'))
+            .count();
+
         let error_str = if _error_char >= mess.len() + 2 {
             Self::compile_left(mess, _error_char)
         } else {
             Self::compile_right(mess, _error_char)
         };
 
-        eprintln!("{}{}{}\n{}", left, char.red(), right, error_str,);
+        eprintln!(
+            "{}{}{}\n{}\n\n{} {}",
+            left,
+            char.red(),
+            right,
+            error_str,
+            "Error at line".red().bold(),
+            format!("{}:{}", line_no + 2, error_char + 1).yellow()
+        );
         process::exit(-1);
     }
 

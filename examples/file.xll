@@ -10,6 +10,7 @@
     </include>
 </head>
 <main>
+    < />
     <!-- 
         Data types
         All literals must be wrapped in their data type
@@ -290,3 +291,40 @@
 </main>
 
 </html>
+
+
+<!-- Code below — just for test -->
+<ffi>
+    <name>show_message_box</name>
+    <dll>
+        <str>user32.dll</str>
+    </dll>
+    <function>
+        <str>MessageBoxA</str>
+    </function>
+
+    <!-- Аргументы должны соответствовать ABI из DLL -->
+    <arg>
+        <name>title</name>
+        <type>
+            <str />
+        </type>
+    </arg>
+
+    <arg>
+        <name>text</name>
+        <type>
+            <str />
+        </type>
+    </arg>
+
+</ffi>
+
+<call show_message_box>
+    <str>Message Box</str>
+    <str>Hello from XLL FFI!</str>
+</call>
+
+
+TODO: Arrays, try-catch expr, null value, void type
+TODO: Как реализовывать разные возвращаемые/принимаемые типы данных? типа int | null
