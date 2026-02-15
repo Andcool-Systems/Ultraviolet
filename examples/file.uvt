@@ -322,7 +322,7 @@
 
 <call show_message_box>
     <str>Message Box</str>
-    <str>Hello from XLL FFI!</str>
+    <str>Hello from Ultraviolet FFI!</str>
 </call>
 
 

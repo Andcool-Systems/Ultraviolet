@@ -45,7 +45,6 @@ impl CodeParser {
 
         let mut closing_tag = String::new();
         while let Some(char) = self.iter.next() {
-            //println!("{} {:?}", char, parse_state);
             match char {
                 '<' => match parse_state {
                     ParseState::None => parse_state = ParseState::TagName,
