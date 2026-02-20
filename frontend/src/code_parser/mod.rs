@@ -54,7 +54,8 @@ impl CodeParser {
 
                         // If string buffer not empty
                         if !self.buffer.is_empty() {
-                            node.children.push(ParseBody::String(self.buffer.clone()));
+                            node.children
+                                .push(ParseBody::StringContent(self.buffer.clone()));
                             self.buffer.clear();
                         }
 
@@ -65,7 +66,8 @@ impl CodeParser {
                         } else {
                             self.iter.step_back(); // Return iter to `<` char
                             // Recursively parse nested tags
-                            node.children.push(ParseBody::Node(Box::new(self.parse())));
+                            node.children
+                                .push(ParseBody::NodeContent(Box::new(self.parse())));
                         }
                     }
                     _ => ParserError::error("Unexpected `<` tag", &mut self.iter),

@@ -1,7 +1,7 @@
 #[derive(Debug, Clone)]
 pub enum ParseBody {
-    String(String),
-    Node(Box<ParseNode>),
+    StringContent(String),
+    NodeContent(Box<ParseNode>),
 }
 
 #[derive(Debug, Clone)]
