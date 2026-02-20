@@ -1,7 +1,8 @@
 pub mod iterator;
 pub mod types;
 
-use crate::code_parser::{iterator::Iter, types::ASTNode};
+use crate::code_parser::types::ParseBody;
+use crate::code_parser::{iterator::Iter, types::ParseNode};
 use crate::errors::parser_error::ParserError;
 use regex::Regex;
 
@@ -34,9 +35,9 @@ impl CodeParser {
         re.replace_all(&code, "").to_string()
     }
 
-    pub fn parse(&mut self) -> ASTNode {
+    pub fn parse(&mut self) -> ParseNode {
         let mut parse_state = ParseState::None;
-        let mut node = ASTNode {
+        let mut node = ParseNode {
             self_closing: false,
             name: String::new(),
             extra_param: String::new(),
@@ -53,8 +54,7 @@ impl CodeParser {
 
                         // If string buffer not empty
                         if !self.buffer.is_empty() {
-                            node.children
-                                .push(types::ASTBody::String(self.buffer.clone()));
+                            node.children.push(ParseBody::String(self.buffer.clone()));
                             self.buffer.clear();
                         }
 
@@ -65,8 +65,7 @@ impl CodeParser {
                         } else {
                             self.iter.step_back(); // Return iter to `<` char
                             // Recursively parse nested tags
-                            node.children
-                                .push(types::ASTBody::Node(Box::new(self.parse())));
+                            node.children.push(ParseBody::Node(Box::new(self.parse())));
                         }
                     }
                     _ => ParserError::error("Unexpected `<` tag", &mut self.iter),

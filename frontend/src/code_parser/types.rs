@@ -1,13 +1,13 @@
 #[derive(Debug, Clone)]
-pub enum ASTBody {
+pub enum ParseBody {
     String(String),
-    Node(Box<ASTNode>),
+    Node(Box<ParseNode>),
 }
 
 #[derive(Debug, Clone)]
-pub struct ASTNode {
+pub struct ParseNode {
     pub name: String,
-    pub children: Vec<ASTBody>,
+    pub children: Vec<ParseBody>,
     pub self_closing: bool,
 
     /// <tag param />
