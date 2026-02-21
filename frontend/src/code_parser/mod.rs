@@ -23,9 +23,8 @@ pub struct CodeParser {
 
 impl CodeParser {
     pub fn new(code: String) -> Self {
-        let mut _code = Self::clear_comments(code);
         Self {
-            iter: Iter::from(_code.chars()),
+            iter: Iter::from(Self::clear_comments(code).chars()),
             buffer: String::new(),
         }
     }
