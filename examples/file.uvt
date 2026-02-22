@@ -1,9 +1,12 @@
+<!-- comment -->
+
 <program>
 <head>
 
 </head>
 <main>
     <nu/ll />
+    <!-- comment -->
     <call some_function>
 
     <str>123</str>

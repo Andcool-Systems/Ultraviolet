@@ -5,7 +5,7 @@ use crate::{
     lexer::types::{LexerParseState, RawStringTagType, UVLexerTokens, UVToken},
 };
 
-mod types;
+pub mod types;
 
 pub struct Lexer {
     iter: Iter<char>,
@@ -55,6 +55,10 @@ impl Lexer {
 
                     match ch {
                         '<' => {
+                            if self.check_comment_and_consume() {
+                                continue;
+                            }
+
                             self.token_start = self.iter.pos - 1;
                             if self.iter.peek(None) == Some('/') {
                                 self.iter.next(); // Consume '/'
@@ -235,6 +239,22 @@ impl Lexer {
 
         self.iter.next(); // If no tag found - return iter to initial pos
         None
+    }
+
+    fn check_comment_and_consume(&mut self) -> bool {
+        self.iter.step_back();
+
+        if !&self.iter.vec[self.iter.pos..].starts_with(&['<', '!', '-', '-']) {
+            self.iter.next();
+            return false;
+        }
+
+        while !&self.iter.vec[self.iter.pos..].starts_with(&['-', '-', '>']) {
+            self.iter.next();
+        }
+
+        self.iter.pos += 3;
+        return true;
     }
 
     /// Get indexes of each line starts
