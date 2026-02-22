@@ -23,10 +23,10 @@ impl<T: Clone> Iter<T> {
             })
     }
 
-    pub fn peek(&self) -> Option<T> {
-        (self.pos >= self.vec.len())
+    pub fn peek(&self, indent: Option<usize>) -> Option<T> {
+        (self.pos + indent.unwrap_or(0) >= self.vec.len())
             .then(|| None)
-            .unwrap_or_else(|| Some(self.vec[self.pos].clone()))
+            .unwrap_or_else(|| Some(self.vec[self.pos + indent.unwrap_or(0)].clone()))
     }
 
     pub fn step_back(&mut self) -> Option<T> {

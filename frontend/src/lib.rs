@@ -1,9 +1,12 @@
-mod code_parser;
-mod errors;
-use code_parser::{CodeParser, types::ParseNode};
+use crate::lexer::Lexer;
 
-pub fn get_ast(code: String) -> ParseNode {
-    let mut code_parser = CodeParser::new(code);
-    println!("{:?}", code_parser.parse());
-    todo!()
+mod errors;
+mod iterator;
+mod lexer;
+
+pub fn get_ast(code: String) {
+    let mut lexer = Lexer::new(code.clone());
+    let tokens = lexer.parse();
+    println!("{:?}", tokens);
+    println!("newline indexes: {:?}", lexer.get_lines_indexes());
 }

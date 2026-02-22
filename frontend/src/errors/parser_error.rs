@@ -1,7 +1,7 @@
 use colored::Colorize;
 use std::process;
 
-use crate::code_parser::iterator::Iter;
+use crate::iterator::Iter;
 
 pub struct ParserError {}
 const T_SYMBOL: char = '┬';
