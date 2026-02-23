@@ -1,4 +1,4 @@
-use std::{char, iter};
+use std::char;
 
 use crate::{
     iterator::Iter,
@@ -42,164 +42,11 @@ impl Lexer {
     }
 
     pub fn parse(&mut self) -> Vec<UVToken> {
-        while let Some(ch) = self.iter.next() {
-            let mut iteration_buffer = Vec::<UVToken>::new();
-            match ch {
-                '<' | '>' | '/' if self.parse_state != LexerParseState::ParsingRawStringLiteral => {
-                    match self.finish_consuming_literal(true) {
-                        Some(str) => iteration_buffer.push(UVToken {
-                            token: UVLexerTokens::Literal(str),
-                            start: self.token_start,
-                            end: self.iter.pos,
-                        }),
-                        _ => {}
-                    }
-
-                    match ch {
-                        '<' => {
-                            if self.check_comment_and_consume() {
-                                continue;
-                            }
-
-                            self.token_start = self.iter.pos - 1;
-                            if self.iter.peek(None) == Some('/') {
-                                self.iter.next(); // Consume '/'
-                                iteration_buffer.push(UVToken {
-                                    token: UVLexerTokens::OpeningAngleBracketSlash,
-                                    start: self.token_start,
-                                    end: self.iter.pos,
-                                });
-                            } else {
-                                iteration_buffer.push(UVToken {
-                                    token: UVLexerTokens::OpeningAngleBracket,
-                                    start: self.token_start,
-                                    end: self.iter.pos,
-                                });
-                            }
-
-                            match self.check_raw_str_tag() {
-                                Some(RawStringTagType::Opening) => {
-                                    self.parse_state = LexerParseState::ParsingRawStringLiteral;
-                                    iteration_buffer.extend([
-                                        UVToken {
-                                            token: UVLexerTokens::Literal("str".to_string()),
-                                            start: self.iter.pos - (RAW_OPEN_LEN - 1),
-                                            end: self.iter.pos - 1,
-                                        },
-                                        UVToken {
-                                            token: UVLexerTokens::ClosingAngleBracket,
-                                            start: self.iter.pos - 1,
-                                            end: self.iter.pos,
-                                        },
-                                    ]);
-                                }
-                                _ => {}
-                            }
-                        }
-                        '>' => {
-                            self.token_start = self.iter.pos - 1;
-                            iteration_buffer.push(UVToken {
-                                token: UVLexerTokens::ClosingAngleBracket,
-                                start: self.token_start,
-                                end: self.iter.pos,
-                            });
-                        }
-                        '/' => {
-                            self.token_start = self.iter.pos - 1;
-                            if self.iter.peek(None) == Some('>') {
-                                self.iter.next(); // Consume '>'
-                                iteration_buffer.push(UVToken {
-                                    token: UVLexerTokens::SelfClosingAngleBracket,
-                                    start: self.token_start,
-                                    end: self.iter.pos,
-                                });
-                            } else {
-                                iteration_buffer.push(UVToken {
-                                    token: UVLexerTokens::Slash,
-                                    start: self.token_start,
-                                    end: self.iter.pos,
-                                });
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-
-                char if self.parse_state == LexerParseState::ParsingRawStringLiteral => {
-                    self.buffer.push(char);
-
-                    if char == '<' {
-                        match self.check_raw_str_tag() {
-                            Some(RawStringTagType::Closing) => {
-                                self.buffer.pop(); // Remove '<' from buffer
-                                match self.finish_consuming_literal(false) {
-                                    Some(str) => {
-                                        iteration_buffer.push(UVToken {
-                                            token: UVLexerTokens::RawString(str),
-                                            start: self.token_start,
-                                            end: self.iter.pos - RAW_CLOSE_LEN,
-                                        });
-                                    }
-                                    _ => {}
-                                }
-                                iteration_buffer.extend([
-                                    UVToken {
-                                        token: UVLexerTokens::OpeningAngleBracketSlash,
-                                        start: self.iter.pos - RAW_CLOSE_LEN,
-                                        end: self.iter.pos - RAW_OPEN_LEN,
-                                    },
-                                    UVToken {
-                                        token: UVLexerTokens::Literal("str".to_string()),
-                                        start: self.iter.pos - RAW_OPEN_LEN,
-                                        end: self.iter.pos - 1,
-                                    },
-                                    UVToken {
-                                        token: UVLexerTokens::ClosingAngleBracket,
-                                        start: self.iter.pos - 1,
-                                        end: self.iter.pos,
-                                    },
-                                ]);
-                                self.parse_state = LexerParseState::Default;
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-
-                char if Self::is_valid_literal(char) => match self.parse_state {
-                    LexerParseState::Default => {
-                        self.parse_state = LexerParseState::ParsingLiteral;
-                        self.token_start = self.iter.pos - 1;
-                        self.buffer.push(char);
-                    }
-                    LexerParseState::ParsingLiteral => self.buffer.push(char),
-                    _ => {}
-                },
-
-                char if !Self::is_valid_literal(char) => match self.parse_state {
-                    LexerParseState::ParsingLiteral => match self.finish_consuming_literal(true) {
-                        Some(str) => {
-                            iteration_buffer.push(UVToken {
-                                token: UVLexerTokens::Literal(str),
-                                start: self.token_start,
-                                end: self.iter.pos - 1,
-                            });
-                            self.iter.step_back();
-                        }
-                        _ => {}
-                    },
-                    LexerParseState::Default if !char.is_whitespace() => {
-                        iteration_buffer.push(UVToken {
-                            token: UVLexerTokens::Unknown(char),
-                            start: self.iter.pos - 1,
-                            end: self.iter.pos,
-                        })
-                    }
-                    _ => {}
-                },
-
-                _ => {}
-            }
+        while let Some(_) = self.iter.peek(None) {
+            let iteration_buffer = match self.parse_state {
+                LexerParseState::Default => self.lex_normal_mode(),
+                LexerParseState::ParsingRawStringLiteral => self.lex_raw_mode(),
+            };
 
             self.tokens.extend(iteration_buffer);
         }
@@ -211,8 +58,172 @@ impl Lexer {
                 end: self.iter.pos,
             });
         }
-
         self.tokens.clone()
+    }
+
+    fn lex_normal_mode(&mut self) -> Vec<UVToken> {
+        let ch = self.iter.next().unwrap(); // This inwrap is potentially unreachable
+        let mut iteration_buffer = Vec::<UVToken>::new();
+
+        match ch {
+            '<' | '>' | '/' => {
+                match self.finish_consuming_literal(true) {
+                    Some(str) => iteration_buffer.push(UVToken {
+                        token: UVLexerTokens::Literal(str.clone()),
+                        start: self.token_start,
+                        end: self.iter.pos - 1,
+                    }),
+                    _ => {}
+                }
+
+                match ch {
+                    '<' => {
+                        if self.check_comment_and_consume() {
+                            return iteration_buffer;
+                        }
+
+                        self.token_start = self.iter.pos - 1;
+                        if self.iter.peek(None) == Some('/') {
+                            self.iter.next(); // Consume '/'
+                            iteration_buffer.push(UVToken {
+                                token: UVLexerTokens::OpeningAngleBracketSlash,
+                                start: self.token_start,
+                                end: self.iter.pos,
+                            });
+                        } else {
+                            iteration_buffer.push(UVToken {
+                                token: UVLexerTokens::OpeningAngleBracket,
+                                start: self.token_start,
+                                end: self.iter.pos,
+                            });
+                        }
+
+                        match self.check_raw_str_tag() {
+                            Some(RawStringTagType::Opening) => {
+                                self.parse_state = LexerParseState::ParsingRawStringLiteral;
+                                iteration_buffer.extend([
+                                    UVToken {
+                                        token: UVLexerTokens::Literal("str".to_string()),
+                                        start: self.iter.pos - (RAW_OPEN_LEN - 1),
+                                        end: self.iter.pos - 1,
+                                    },
+                                    UVToken {
+                                        token: UVLexerTokens::ClosingAngleBracket,
+                                        start: self.iter.pos - 1,
+                                        end: self.iter.pos,
+                                    },
+                                ]);
+                            }
+                            _ => {}
+                        }
+                    }
+                    '>' => {
+                        self.token_start = self.iter.pos - 1;
+                        iteration_buffer.push(UVToken {
+                            token: UVLexerTokens::ClosingAngleBracket,
+                            start: self.token_start,
+                            end: self.iter.pos,
+                        });
+                    }
+                    '/' => {
+                        self.token_start = self.iter.pos - 1;
+                        if self.iter.peek(None) == Some('>') {
+                            self.iter.next(); // Consume '>'
+                            iteration_buffer.push(UVToken {
+                                token: UVLexerTokens::SelfClosingAngleBracket,
+                                start: self.token_start,
+                                end: self.iter.pos,
+                            });
+                        } else {
+                            iteration_buffer.push(UVToken {
+                                token: UVLexerTokens::Slash,
+                                start: self.token_start,
+                                end: self.iter.pos,
+                            });
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            char if Self::is_valid_literal(char) => {
+                if self.buffer.is_empty() {
+                    self.token_start = self.iter.pos - 1;
+                }
+                self.buffer.push(char);
+            }
+
+            char if !Self::is_valid_literal(char) => {
+                if !self.buffer.is_empty() {
+                    match self.finish_consuming_literal(true) {
+                        Some(str) => {
+                            iteration_buffer.push(UVToken {
+                                token: UVLexerTokens::Literal(str),
+                                start: self.token_start,
+                                end: self.iter.pos - 1,
+                            });
+                            self.iter.step_back();
+                        }
+                        _ => {}
+                    }
+                } else if !char.is_whitespace() {
+                    iteration_buffer.push(UVToken {
+                        token: UVLexerTokens::Unknown(char),
+                        start: self.iter.pos - 1,
+                        end: self.iter.pos,
+                    })
+                }
+            }
+
+            _ => {}
+        }
+
+        iteration_buffer
+    }
+
+    fn lex_raw_mode(&mut self) -> Vec<UVToken> {
+        let ch = self.iter.next().unwrap(); // This inwrap is potentially unreachable
+        let mut iteration_buffer = Vec::<UVToken>::new();
+
+        self.buffer.push(ch);
+
+        if ch == '<' {
+            match self.check_raw_str_tag() {
+                Some(RawStringTagType::Closing) => {
+                    self.buffer.pop(); // Remove '<' from buffer
+                    match self.finish_consuming_literal(false) {
+                        Some(str) => {
+                            iteration_buffer.push(UVToken {
+                                token: UVLexerTokens::RawString(str),
+                                start: self.token_start,
+                                end: self.iter.pos - RAW_CLOSE_LEN,
+                            });
+                        }
+                        _ => {}
+                    }
+                    iteration_buffer.extend([
+                        UVToken {
+                            token: UVLexerTokens::OpeningAngleBracketSlash,
+                            start: self.iter.pos - RAW_CLOSE_LEN,
+                            end: self.iter.pos - RAW_OPEN_LEN,
+                        },
+                        UVToken {
+                            token: UVLexerTokens::Literal("str".to_string()),
+                            start: self.iter.pos - RAW_OPEN_LEN,
+                            end: self.iter.pos - 1,
+                        },
+                        UVToken {
+                            token: UVLexerTokens::ClosingAngleBracket,
+                            start: self.iter.pos - 1,
+                            end: self.iter.pos,
+                        },
+                    ]);
+                    self.parse_state = LexerParseState::Default;
+                }
+                _ => {}
+            }
+        }
+
+        iteration_buffer
     }
 
     /// Returns buffered literal
@@ -230,8 +241,6 @@ impl Lexer {
         };
 
         self.buffer.clear();
-        self.parse_state = LexerParseState::Default;
-
         token
     }
 
@@ -282,7 +291,10 @@ impl Lexer {
 
 #[cfg(test)]
 mod tests {
-    use crate::lexer::{Lexer, types::UVLexerTokens};
+    use crate::lexer::{
+        Lexer,
+        types::{UVLexerTokens, UVToken},
+    };
 
     fn get_tokens(code: &str) -> Vec<UVLexerTokens> {
         Lexer::new(code.to_owned())
@@ -369,6 +381,50 @@ mod tests {
                 UVLexerTokens::OpeningAngleBracketSlash,
                 UVLexerTokens::Literal("str".to_owned()),
                 UVLexerTokens::ClosingAngleBracket
+            ]
+        )
+    }
+
+    #[test]
+    fn test_indexes() {
+        assert_eq!(
+            Lexer::new("<main>test</main>".to_owned()).parse(),
+            [
+                UVToken {
+                    token: UVLexerTokens::OpeningAngleBracket,
+                    start: 0,
+                    end: 1
+                },
+                UVToken {
+                    token: UVLexerTokens::Literal("main".to_owned()),
+                    start: 1,
+                    end: 5
+                },
+                UVToken {
+                    token: UVLexerTokens::ClosingAngleBracket,
+                    start: 5,
+                    end: 6
+                },
+                UVToken {
+                    token: UVLexerTokens::Literal("test".to_owned()),
+                    start: 6,
+                    end: 10
+                },
+                UVToken {
+                    token: UVLexerTokens::OpeningAngleBracketSlash,
+                    start: 10,
+                    end: 12
+                },
+                UVToken {
+                    token: UVLexerTokens::Literal("main".to_owned()),
+                    start: 12,
+                    end: 16
+                },
+                UVToken {
+                    token: UVLexerTokens::ClosingAngleBracket,
+                    start: 16,
+                    end: 17
+                },
             ]
         )
     }
