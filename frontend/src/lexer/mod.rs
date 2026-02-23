@@ -6,9 +6,6 @@ use crate::{
 };
 pub mod types;
 
-const RAW_OPEN_LEN: usize = 5;
-const RAW_CLOSE_LEN: usize = 6;
-
 pub struct Lexer {
     iter: Iter<char>,
     tokens: Vec<UVToken>,
@@ -72,7 +69,7 @@ impl Lexer {
     }
 
     fn lex_normal_mode(&mut self) -> Vec<UVToken> {
-        let ch = self.iter.next().unwrap(); // This inwrap is potentially unreachable
+        let ch = self.iter.next().unwrap(); // This unwrap is potentially unreachable
         let mut iteration_buffer = Vec::<UVToken>::new();
 
         match ch {
@@ -114,7 +111,7 @@ impl Lexer {
                                 iteration_buffer.extend([
                                     UVToken {
                                         token: UVLexerTokens::Literal("str".to_string()),
-                                        start: self.iter.pos - (RAW_OPEN_LEN - 1),
+                                        start: self.token_start + 1,
                                         end: self.iter.pos - 1,
                                     },
                                     UVToken {
@@ -123,6 +120,7 @@ impl Lexer {
                                         end: self.iter.pos,
                                     },
                                 ]);
+                                self.token_start = self.iter.pos;
                             }
                             _ => {}
                         }
@@ -191,10 +189,11 @@ impl Lexer {
     }
 
     fn lex_raw_mode(&mut self) -> Vec<UVToken> {
-        let ch = self.iter.next().unwrap(); // This inwrap is potentially unreachable
+        let ch = self.iter.next().unwrap(); // This unwrap is potentially unreachable
         let mut iteration_buffer = Vec::<UVToken>::new();
 
         self.buffer.push(ch);
+        let token_end = self.iter.pos;
 
         if ch == '<' {
             match self.check_closing_raw_str_tag() {
@@ -205,7 +204,7 @@ impl Lexer {
                             iteration_buffer.push(UVToken {
                                 token: UVLexerTokens::RawString(str),
                                 start: self.token_start,
-                                end: self.iter.pos - RAW_CLOSE_LEN,
+                                end: token_end - 1,
                             });
                         }
                         _ => {}
@@ -213,12 +212,12 @@ impl Lexer {
                     iteration_buffer.extend([
                         UVToken {
                             token: UVLexerTokens::OpeningAngleBracketSlash,
-                            start: self.iter.pos - RAW_CLOSE_LEN,
-                            end: self.iter.pos - RAW_OPEN_LEN,
+                            start: token_end - 1,
+                            end: token_end + 1,
                         },
                         UVToken {
                             token: UVLexerTokens::Literal("str".to_string()),
-                            start: self.iter.pos - RAW_OPEN_LEN,
+                            start: token_end + 1,
                             end: self.iter.pos - 1,
                         },
                         UVToken {
@@ -525,6 +524,49 @@ mod tests {
                     token: UVLexerTokens::ClosingAngleBracket,
                     start: 16,
                     end: 17
+                },
+            ]
+        )
+    }
+    #[test]
+    fn test_labeled_indexes() {
+        assert_eq!(
+            Lexer::new("<str-123>test</str-123>".to_owned()).parse(),
+            [
+                UVToken {
+                    token: UVLexerTokens::OpeningAngleBracket,
+                    start: 0,
+                    end: 1
+                },
+                UVToken {
+                    token: UVLexerTokens::Literal("str".to_string()),
+                    start: 1,
+                    end: 8
+                },
+                UVToken {
+                    token: UVLexerTokens::ClosingAngleBracket,
+                    start: 8,
+                    end: 9
+                },
+                UVToken {
+                    token: UVLexerTokens::RawString("test".to_string()),
+                    start: 9,
+                    end: 13
+                },
+                UVToken {
+                    token: UVLexerTokens::OpeningAngleBracketSlash,
+                    start: 13,
+                    end: 15
+                },
+                UVToken {
+                    token: UVLexerTokens::Literal("str".to_string()),
+                    start: 15,
+                    end: 22
+                },
+                UVToken {
+                    token: UVLexerTokens::ClosingAngleBracket,
+                    start: 22,
+                    end: 23
                 },
             ]
         )
