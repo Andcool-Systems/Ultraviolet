@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-regex = "1.12.2"
+anyhow = "1.0.100"
 colored = "3.0.0"

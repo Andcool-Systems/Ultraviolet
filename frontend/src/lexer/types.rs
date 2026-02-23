@@ -1,10 +1,11 @@
+use crate::types::Span;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum UVLexerTokens {
     OpeningAngleBracket,
     ClosingAngleBracket,
     SelfClosingAngleBracket,  // />
     OpeningAngleBracketSlash, // </
-    Slash,
 
     Literal(String),
     RawString(String),
@@ -19,7 +20,6 @@ impl ToString for UVLexerTokens {
             UVLexerTokens::ClosingAngleBracket => ">".to_owned(),
             UVLexerTokens::SelfClosingAngleBracket => "/>".to_owned(),
             UVLexerTokens::OpeningAngleBracketSlash => "</".to_owned(),
-            UVLexerTokens::Slash => "/".to_owned(),
             UVLexerTokens::Literal(str) => format!("[Literal \"{}\"]", str),
             UVLexerTokens::RawString(str) => format!("[Raw string \"{}\"]", str),
             UVLexerTokens::Unknown(ch) => ch.to_string(),
@@ -30,8 +30,7 @@ impl ToString for UVLexerTokens {
 #[derive(Debug, Clone, PartialEq)]
 pub struct UVToken {
     pub token: UVLexerTokens,
-    pub start: usize,
-    pub end: usize,
+    pub span: Span,
 }
 
 #[derive(PartialEq)]

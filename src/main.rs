@@ -1,10 +1,9 @@
 use anyhow::{Ok, Result};
 use frontend;
-use std::fs;
+use std::path::Path;
 
 fn main() -> Result<()> {
-    let code: String = fs::read_to_string("./examples/file.uvt")?;
-    frontend::get_ast(code);
+    let _ = frontend::process(Path::new("./examples/file.uvt"));
 
     Ok(())
 }

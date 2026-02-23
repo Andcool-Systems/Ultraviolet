@@ -1,9 +1,32 @@
-pub mod parser_error;
-pub mod simple;
+use std::fmt;
 
-pub enum ErrorKind {
-    Parsing,
-    DefinitionCheck,
-    TypeCheck,
-    MathProcessing,
+use crate::{errors::traits::Positional, types::Span};
+
+pub mod error_renderer;
+pub mod traits;
+
+pub struct ParseError {
+    message: String,
+    span: Span,
+}
+
+impl ParseError {
+    pub fn new(message: String, span: Span) -> Self {
+        Self { message, span }
+    }
+}
+
+impl Positional for ParseError {
+    fn get_span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+impl fmt::Debug for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ParseError")
+            .field("message", &self.message)
+            .field("span", &self.span)
+            .finish()
+    }
 }
