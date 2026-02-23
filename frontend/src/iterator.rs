@@ -6,7 +6,7 @@ pub struct Iter<T: Clone> {
     pub pos: usize,
 }
 
-impl<T: Clone> Iter<T> {
+impl<T: Clone + std::cmp::PartialEq> Iter<T> {
     pub fn from<I: IntoIterator<Item = T>>(iter: I) -> Self {
         Self {
             vec: iter.into_iter().collect(),
@@ -14,6 +14,7 @@ impl<T: Clone> Iter<T> {
         }
     }
 
+    /// Get next iterator element with moving of position
     pub fn next(&mut self) -> Option<T> {
         (self.pos >= self.vec.len())
             .then_some(None)
@@ -23,17 +24,24 @@ impl<T: Clone> Iter<T> {
             })
     }
 
+    /// Get pending iterator element with offset
     pub fn peek(&self, indent: Option<usize>) -> Option<T> {
         (self.pos + indent.unwrap_or(0) >= self.vec.len())
             .then(|| None)
             .unwrap_or_else(|| Some(self.vec[self.pos + indent.unwrap_or(0)].clone()))
     }
 
+    /// Move iterator back
     pub fn step_back(&mut self) -> Option<T> {
         if self.pos == 0 {
             return None;
         }
         self.pos = cmp::max(0, self.pos - 1);
         Some(self.vec[self.pos].clone())
+    }
+
+    /// If current iter position starts with pattern
+    pub fn starts_with(&self, pattern: &[T]) -> bool {
+        self.vec[self.pos..].starts_with(pattern)
     }
 }

@@ -1,10 +1,13 @@
-use std::char;
+use std::{char, iter};
 
 use crate::{
     iterator::Iter,
     lexer::types::{LexerParseState, RawStringTagType, UVLexerTokens, UVToken},
 };
 pub mod types;
+
+const RAW_OPEN_LEN: usize = 5;
+const RAW_CLOSE_LEN: usize = 6;
 
 pub struct Lexer {
     iter: Iter<char>,
@@ -80,7 +83,7 @@ impl Lexer {
                                     iteration_buffer.extend([
                                         UVToken {
                                             token: UVLexerTokens::Literal("str".to_string()),
-                                            start: self.iter.pos - 4,
+                                            start: self.iter.pos - (RAW_OPEN_LEN - 1),
                                             end: self.iter.pos - 1,
                                         },
                                         UVToken {
@@ -134,7 +137,7 @@ impl Lexer {
                                         iteration_buffer.push(UVToken {
                                             token: UVLexerTokens::RawString(str),
                                             start: self.token_start,
-                                            end: self.iter.pos - 6,
+                                            end: self.iter.pos - RAW_CLOSE_LEN,
                                         });
                                     }
                                     _ => {}
@@ -142,12 +145,12 @@ impl Lexer {
                                 iteration_buffer.extend([
                                     UVToken {
                                         token: UVLexerTokens::OpeningAngleBracketSlash,
-                                        start: self.iter.pos - 6,
-                                        end: self.iter.pos - 5,
+                                        start: self.iter.pos - RAW_CLOSE_LEN,
+                                        end: self.iter.pos - RAW_OPEN_LEN,
                                     },
                                     UVToken {
                                         token: UVLexerTokens::Literal("str".to_string()),
-                                        start: self.iter.pos - 5,
+                                        start: self.iter.pos - RAW_OPEN_LEN,
                                         end: self.iter.pos - 1,
                                     },
                                     UVToken {
@@ -236,12 +239,11 @@ impl Lexer {
     fn check_raw_str_tag(&mut self) -> Option<RawStringTagType> {
         self.iter.step_back(); // For proper consuming '<'
 
-        let buffer = &self.iter.vec[self.iter.pos..];
-        if buffer.starts_with(&['<', 's', 't', 'r', '>']) {
+        if self.iter.starts_with(&['<', 's', 't', 'r', '>']) {
             self.iter.pos += 5;
             return Some(RawStringTagType::Opening);
         }
-        if buffer.starts_with(&['<', '/', 's', 't', 'r', '>']) {
+        if self.iter.starts_with(&['<', '/', 's', 't', 'r', '>']) {
             self.iter.pos += 6;
             return Some(RawStringTagType::Closing);
         }
@@ -253,13 +255,15 @@ impl Lexer {
     fn check_comment_and_consume(&mut self) -> bool {
         self.iter.step_back();
 
-        if !&self.iter.vec[self.iter.pos..].starts_with(&['<', '!', '-', '-']) {
+        if !self.iter.starts_with(&['<', '!', '-', '-']) {
             self.iter.next();
             return false;
         }
 
-        while !&self.iter.vec[self.iter.pos..].starts_with(&['-', '-', '>']) {
-            self.iter.next();
+        while let Some(_) = self.iter.next() {
+            if self.iter.starts_with(&['-', '-', '>']) {
+                break;
+            }
         }
 
         self.iter.pos += 3;
