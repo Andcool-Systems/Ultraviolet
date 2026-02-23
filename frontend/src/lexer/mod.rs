@@ -74,13 +74,12 @@ impl Lexer {
 
         match ch {
             '<' | '>' | '/' => {
-                match self.finish_consuming_literal(true) {
-                    Some(str) => iteration_buffer.push(UVToken {
+                if let Some(str) = self.finish_consuming_literal(true) {
+                    iteration_buffer.push(UVToken {
                         token: UVLexerTokens::Literal(str.clone()),
                         start: self.token_start,
                         end: self.iter.pos - 1,
-                    }),
-                    _ => {}
+                    })
                 }
 
                 match ch {
@@ -105,24 +104,21 @@ impl Lexer {
                             });
                         }
 
-                        match self.check_opening_raw_str_tag() {
-                            Some(key) => {
-                                self.parse_state = LexerParseState::ParsingRawStringLiteral(key);
-                                iteration_buffer.extend([
-                                    UVToken {
-                                        token: UVLexerTokens::Literal("str".to_string()),
-                                        start: self.token_start + 1,
-                                        end: self.iter.pos - 1,
-                                    },
-                                    UVToken {
-                                        token: UVLexerTokens::ClosingAngleBracket,
-                                        start: self.iter.pos - 1,
-                                        end: self.iter.pos,
-                                    },
-                                ]);
-                                self.token_start = self.iter.pos;
-                            }
-                            _ => {}
+                        if let Some(key) = self.check_opening_raw_str_tag() {
+                            self.parse_state = LexerParseState::ParsingRawStringLiteral(key);
+                            iteration_buffer.extend([
+                                UVToken {
+                                    token: UVLexerTokens::Literal("str".to_string()),
+                                    start: self.token_start + 1,
+                                    end: self.iter.pos - 1,
+                                },
+                                UVToken {
+                                    token: UVLexerTokens::ClosingAngleBracket,
+                                    start: self.iter.pos - 1,
+                                    end: self.iter.pos,
+                                },
+                            ]);
+                            self.token_start = self.iter.pos;
                         }
                     }
                     '>' => {
@@ -161,19 +157,15 @@ impl Lexer {
             }
 
             char if !Self::is_valid_literal(char) => {
-                if !self.buffer.is_empty() {
-                    match self.finish_consuming_literal(true) {
-                        Some(str) => {
-                            iteration_buffer.push(UVToken {
-                                token: UVLexerTokens::Literal(str),
-                                start: self.token_start,
-                                end: self.iter.pos - 1,
-                            });
-                            self.iter.step_back();
-                        }
-                        _ => {}
-                    }
-                } else if !char.is_whitespace() {
+                if let Some(str) = self.finish_consuming_literal(true) {
+                    iteration_buffer.push(UVToken {
+                        token: UVLexerTokens::Literal(str),
+                        start: self.token_start,
+                        end: self.iter.pos - 1,
+                    });
+                }
+
+                if !char.is_whitespace() {
                     iteration_buffer.push(UVToken {
                         token: UVLexerTokens::Unknown(char),
                         start: self.iter.pos - 1,
@@ -196,39 +188,33 @@ impl Lexer {
         let token_end = self.iter.pos;
 
         if ch == '<' {
-            match self.check_closing_raw_str_tag() {
-                Some(true) => {
-                    self.buffer.pop(); // Remove '<' from buffer
-                    match self.finish_consuming_literal(false) {
-                        Some(str) => {
-                            iteration_buffer.push(UVToken {
-                                token: UVLexerTokens::RawString(str),
-                                start: self.token_start,
-                                end: token_end - 1,
-                            });
-                        }
-                        _ => {}
-                    }
-                    iteration_buffer.extend([
-                        UVToken {
-                            token: UVLexerTokens::OpeningAngleBracketSlash,
-                            start: token_end - 1,
-                            end: token_end + 1,
-                        },
-                        UVToken {
-                            token: UVLexerTokens::Literal("str".to_string()),
-                            start: token_end + 1,
-                            end: self.iter.pos - 1,
-                        },
-                        UVToken {
-                            token: UVLexerTokens::ClosingAngleBracket,
-                            start: self.iter.pos - 1,
-                            end: self.iter.pos,
-                        },
-                    ]);
-                    self.parse_state = LexerParseState::Default;
+            if self.check_closing_raw_str_tag() {
+                self.buffer.pop(); // Remove '<' from buffer
+                if let Some(str) = self.finish_consuming_literal(false) {
+                    iteration_buffer.push(UVToken {
+                        token: UVLexerTokens::RawString(str),
+                        start: self.token_start,
+                        end: token_end - 1,
+                    });
                 }
-                _ => {}
+                iteration_buffer.extend([
+                    UVToken {
+                        token: UVLexerTokens::OpeningAngleBracketSlash,
+                        start: token_end - 1,
+                        end: token_end + 1,
+                    },
+                    UVToken {
+                        token: UVLexerTokens::Literal("str".to_string()),
+                        start: token_end + 1,
+                        end: self.iter.pos - 1,
+                    },
+                    UVToken {
+                        token: UVLexerTokens::ClosingAngleBracket,
+                        start: self.iter.pos - 1,
+                        end: self.iter.pos,
+                    },
+                ]);
+                self.parse_state = LexerParseState::Default;
             }
         }
 
@@ -285,7 +271,7 @@ impl Lexer {
     }
 
     /// Check if iterator currently reach </str-xx> tag
-    fn check_closing_raw_str_tag(&mut self) -> Option<bool> {
+    fn check_closing_raw_str_tag(&mut self) -> bool {
         let start_iter_pos = self.iter.pos;
         self.iter.step_back(); // For proper consuming '<'
 
@@ -299,7 +285,7 @@ impl Lexer {
                         LexerParseState::ParsingRawStringLiteral(None)
                     ) =>
                 {
-                    return Some(true);
+                    return true;
                 }
                 Some('-') => {
                     let label = self.consume_raw_str_label();
@@ -308,7 +294,7 @@ impl Lexer {
                             &self.parse_state
                         && start_label.eq(&label)
                     {
-                        return Some(true);
+                        return true;
                     }
                 }
                 _ => {}
@@ -316,7 +302,7 @@ impl Lexer {
         }
 
         self.iter.pos = start_iter_pos;
-        None
+        false
     }
 
     fn check_comment_and_consume(&mut self) -> bool {
