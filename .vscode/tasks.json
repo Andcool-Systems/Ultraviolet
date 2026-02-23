@@ -26,12 +26,12 @@
             }
         },
         {
-            "label": "Build",
-            "detail": "Build Rust application",
+            "label": "Test",
+            "detail": "Test Rust application",
             "type": "shell",
-            "command": "cargo build --release",
+            "command": "cargo test --workspace",
             "group": {
-                "kind": "build",
+                "kind": "test",
                 "isDefault": false
             },
             "problemMatcher": [
@@ -42,7 +42,7 @@
             },
             "options": {
                 "statusbar": {
-                    "label": "$(pass) Build"
+                    "label": "$(beaker) Test"
                 }
             }
         }

@@ -267,7 +267,7 @@ impl Lexer {
     }
 
     fn is_valid_literal(c: char) -> bool {
-        matches!(c, 'a'..='z' | '0'..='9' | '.' | ',' | '_')
+        matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9' | '.' | ',' | '_')
     }
 
     /// Get indexes of each line starts
@@ -280,17 +280,18 @@ impl Lexer {
 mod tests {
     use crate::lexer::{Lexer, types::UVLexerTokens};
 
-    #[test]
-    fn parsing_simple() {
-        let code = "<main><test /></main>";
-        let tokens = Lexer::new(code.to_owned())
+    fn get_tokens(code: &str) -> Vec<UVLexerTokens> {
+        Lexer::new(code.to_owned())
             .parse()
             .into_iter()
             .map(|t| t.token)
-            .collect::<Vec<UVLexerTokens>>();
+            .collect::<Vec<UVLexerTokens>>()
+    }
 
+    #[test]
+    fn parse_simple() {
         assert_eq!(
-            tokens,
+            get_tokens("<main><test /></main>"),
             [
                 UVLexerTokens::OpeningAngleBracket,
                 UVLexerTokens::Literal("main".to_owned()),
@@ -302,6 +303,69 @@ mod tests {
                 UVLexerTokens::Literal("main".to_owned()),
                 UVLexerTokens::ClosingAngleBracket
             ]
-        );
+        )
+    }
+
+    #[test]
+    fn parse_inner_literal() {
+        assert_eq!(
+            get_tokens("<main>test</main>"),
+            [
+                UVLexerTokens::OpeningAngleBracket,
+                UVLexerTokens::Literal("main".to_owned()),
+                UVLexerTokens::ClosingAngleBracket,
+                UVLexerTokens::Literal("test".to_owned()),
+                UVLexerTokens::OpeningAngleBracketSlash,
+                UVLexerTokens::Literal("main".to_owned()),
+                UVLexerTokens::ClosingAngleBracket
+            ]
+        )
+    }
+
+    #[test]
+    fn parse_unknown() {
+        assert_eq!(
+            get_tokens("<main>?</main>"),
+            [
+                UVLexerTokens::OpeningAngleBracket,
+                UVLexerTokens::Literal("main".to_owned()),
+                UVLexerTokens::ClosingAngleBracket,
+                UVLexerTokens::Unknown('?'),
+                UVLexerTokens::OpeningAngleBracketSlash,
+                UVLexerTokens::Literal("main".to_owned()),
+                UVLexerTokens::ClosingAngleBracket
+            ]
+        )
+    }
+
+    #[test]
+    fn parse_comments() {
+        assert_eq!(
+            get_tokens("<main><!-- this is a comment! --></main>"),
+            [
+                UVLexerTokens::OpeningAngleBracket,
+                UVLexerTokens::Literal("main".to_owned()),
+                UVLexerTokens::ClosingAngleBracket,
+                UVLexerTokens::OpeningAngleBracketSlash,
+                UVLexerTokens::Literal("main".to_owned()),
+                UVLexerTokens::ClosingAngleBracket
+            ]
+        )
+    }
+
+    #[test]
+    fn parse_raw_str() {
+        assert_eq!(
+            get_tokens("<str> Random content <null /> </str>"),
+            [
+                UVLexerTokens::OpeningAngleBracket,
+                UVLexerTokens::Literal("str".to_owned()),
+                UVLexerTokens::ClosingAngleBracket,
+                UVLexerTokens::RawString(" Random content <null /> ".to_owned()),
+                UVLexerTokens::OpeningAngleBracketSlash,
+                UVLexerTokens::Literal("str".to_owned()),
+                UVLexerTokens::ClosingAngleBracket
+            ]
+        )
     }
 }
