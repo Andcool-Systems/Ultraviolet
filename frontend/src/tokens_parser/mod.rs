@@ -59,7 +59,10 @@ impl TokenParser {
                                     "Unexpected closing tag `{}`. Expected `{}`",
                                     closing_tag_name, tag.name
                                 ),
-                                token.span,
+                                Span::new(
+                                    token.span.start - closing_tag_name.len(),
+                                    token.span.end - 1,
+                                ),
                             ));
                         }
 

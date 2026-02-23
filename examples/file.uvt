@@ -7,7 +7,7 @@
 <main>
     <null />
     <!-- comment -->
-    <call some_function/>
+    <call some_function>
 
     <str>123</str>
 </main>
