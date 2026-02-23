@@ -24,6 +24,28 @@
                     "label": "$(debug-start) Run"
                 }
             }
+        }
+        ,
+        {
+            "label": "Build",
+            "detail": "Build Rust application",
+            "type": "shell",
+            "command": "cargo build --release",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "runOptions": {
+                "reevaluateOnRerun": true
+            },
+            "options": {
+                "statusbar": {
+                    "label": "$(build) Build"
+                }
+            }
         },
         {
             "label": "Test",

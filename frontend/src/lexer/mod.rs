@@ -2,7 +2,7 @@ use std::char;
 
 use crate::{
     iterator::Iter,
-    lexer::types::{LexerParseState, RawStringTagType, UVLexerTokens, UVToken},
+    lexer::types::{LexerParseState, UVLexerTokens, UVToken},
 };
 pub mod types;
 
@@ -45,15 +45,25 @@ impl Lexer {
         while let Some(_) = self.iter.peek(None) {
             let iteration_buffer = match self.parse_state {
                 LexerParseState::Default => self.lex_normal_mode(),
-                LexerParseState::ParsingRawStringLiteral => self.lex_raw_mode(),
+                LexerParseState::ParsingRawStringLiteral(_) => self.lex_raw_mode(),
             };
 
             self.tokens.extend(iteration_buffer);
         }
 
-        if let Some(lit) = self.finish_consuming_literal(true) {
+        let trim_end = if matches!(self.parse_state, LexerParseState::Default) {
+            true
+        } else {
+            false
+        };
+
+        if let Some(lit) = self.finish_consuming_literal(trim_end) {
+            let token = match self.parse_state {
+                LexerParseState::Default => UVLexerTokens::Literal(lit),
+                LexerParseState::ParsingRawStringLiteral(_) => UVLexerTokens::RawString(lit),
+            };
             self.tokens.push(UVToken {
-                token: UVLexerTokens::Literal(lit),
+                token: token,
                 start: self.token_start,
                 end: self.iter.pos,
             });
@@ -98,9 +108,9 @@ impl Lexer {
                             });
                         }
 
-                        match self.check_raw_str_tag() {
-                            Some(RawStringTagType::Opening) => {
-                                self.parse_state = LexerParseState::ParsingRawStringLiteral;
+                        match self.check_opening_raw_str_tag() {
+                            Some(key) => {
+                                self.parse_state = LexerParseState::ParsingRawStringLiteral(key);
                                 iteration_buffer.extend([
                                     UVToken {
                                         token: UVLexerTokens::Literal("str".to_string()),
@@ -187,8 +197,8 @@ impl Lexer {
         self.buffer.push(ch);
 
         if ch == '<' {
-            match self.check_raw_str_tag() {
-                Some(RawStringTagType::Closing) => {
+            match self.check_closing_raw_str_tag() {
+                Some(true) => {
                     self.buffer.pop(); // Remove '<' from buffer
                     match self.finish_consuming_literal(false) {
                         Some(str) => {
@@ -244,20 +254,69 @@ impl Lexer {
         token
     }
 
-    /// Check if iterator currently reach <str> tag
-    fn check_raw_str_tag(&mut self) -> Option<RawStringTagType> {
+    /// Consume all symbols after <str- and before >
+    fn consume_raw_str_label(&mut self) -> Option<String> {
+        let mut buffer = String::new();
+        while let Some(char) = self.iter.next() {
+            if char == '>' {
+                return Some(buffer);
+            } else {
+                buffer.push(char);
+            }
+        }
+        None
+    }
+
+    /// Check if iterator currently reach <str-xx> tag
+    fn check_opening_raw_str_tag(&mut self) -> Option<Option<String>> {
+        let start_iter_pos = self.iter.pos;
         self.iter.step_back(); // For proper consuming '<'
 
-        if self.iter.starts_with(&['<', 's', 't', 'r', '>']) {
-            self.iter.pos += 5;
-            return Some(RawStringTagType::Opening);
-        }
-        if self.iter.starts_with(&['<', '/', 's', 't', 'r', '>']) {
-            self.iter.pos += 6;
-            return Some(RawStringTagType::Closing);
+        if self.iter.starts_with(&['<', 's', 't', 'r']) {
+            self.iter.pos += 4;
+            match self.iter.next() {
+                Some('>') => return Some(None),
+                Some('-') => return Some(self.consume_raw_str_label()),
+                _ => {}
+            }
         }
 
-        self.iter.next(); // If no tag found - return iter to initial pos
+        self.iter.pos = start_iter_pos;
+        None
+    }
+
+    /// Check if iterator currently reach </str-xx> tag
+    fn check_closing_raw_str_tag(&mut self) -> Option<bool> {
+        let start_iter_pos = self.iter.pos;
+        self.iter.step_back(); // For proper consuming '<'
+
+        if self.iter.starts_with(&['<', '/', 's', 't', 'r']) {
+            self.iter.pos += 5;
+
+            match self.iter.next() {
+                Some('>')
+                    if matches!(
+                        self.parse_state,
+                        LexerParseState::ParsingRawStringLiteral(None)
+                    ) =>
+                {
+                    return Some(true);
+                }
+                Some('-') => {
+                    let label = self.consume_raw_str_label();
+                    if let Some(label) = label
+                        && let LexerParseState::ParsingRawStringLiteral(Some(start_label)) =
+                            &self.parse_state
+                        && start_label.eq(&label)
+                    {
+                        return Some(true);
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        self.iter.pos = start_iter_pos;
         None
     }
 
@@ -392,6 +451,37 @@ mod tests {
                 UVLexerTokens::OpeningAngleBracketSlash,
                 UVLexerTokens::Literal("str".to_owned()),
                 UVLexerTokens::ClosingAngleBracket
+            ]
+        )
+    }
+
+    #[test]
+    fn parse_labeled_str() {
+        assert_eq!(
+            get_tokens("<str-test> Random content <str-123></str-123> <null /> </str-test>"),
+            [
+                UVLexerTokens::OpeningAngleBracket,
+                UVLexerTokens::Literal("str".to_owned()),
+                UVLexerTokens::ClosingAngleBracket,
+                UVLexerTokens::RawString(
+                    " Random content <str-123></str-123> <null /> ".to_owned()
+                ),
+                UVLexerTokens::OpeningAngleBracketSlash,
+                UVLexerTokens::Literal("str".to_owned()),
+                UVLexerTokens::ClosingAngleBracket
+            ]
+        )
+    }
+
+    #[test]
+    fn parse_broken_raw_str() {
+        assert_eq!(
+            get_tokens("<str> Random content <null /> </str"),
+            [
+                UVLexerTokens::OpeningAngleBracket,
+                UVLexerTokens::Literal("str".to_owned()),
+                UVLexerTokens::ClosingAngleBracket,
+                UVLexerTokens::RawString(" Random content <null /> </str".to_owned())
             ]
         )
     }

@@ -17,7 +17,7 @@
     -->
 
     <!-- Strings -->
-    <str>Hello world!</str>
+    <str-123>Hello world!</str-123>
 
     <!-- Integer (always int64) -->
     <int>255</int>

@@ -37,10 +37,5 @@ pub struct UVToken {
 #[derive(PartialEq)]
 pub enum LexerParseState {
     Default,
-    ParsingRawStringLiteral,
-}
-
-pub enum RawStringTagType {
-    Opening,
-    Closing,
+    ParsingRawStringLiteral(Option<String>),
 }
