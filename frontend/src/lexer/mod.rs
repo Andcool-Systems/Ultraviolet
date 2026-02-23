@@ -271,11 +271,10 @@ impl Lexer {
 
         while let Some(_) = self.iter.next() {
             if self.iter.starts_with(&['-', '-', '>']) {
-                break;
+                self.iter.pos += 3;
+                return true;
             }
         }
-
-        self.iter.pos += 3;
         return true;
     }
 
@@ -363,6 +362,18 @@ mod tests {
                 UVLexerTokens::Literal("main".to_owned()),
                 UVLexerTokens::ClosingAngleBracket,
                 UVLexerTokens::OpeningAngleBracketSlash,
+                UVLexerTokens::Literal("main".to_owned()),
+                UVLexerTokens::ClosingAngleBracket
+            ]
+        )
+    }
+
+    #[test]
+    fn unclosed_comment() {
+        assert_eq!(
+            get_tokens("<main><!-- this is an unclosed comment!</main>"),
+            [
+                UVLexerTokens::OpeningAngleBracket,
                 UVLexerTokens::Literal("main".to_owned()),
                 UVLexerTokens::ClosingAngleBracket
             ]
