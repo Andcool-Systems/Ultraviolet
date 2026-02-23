@@ -4,7 +4,6 @@ use crate::{
     iterator::Iter,
     lexer::types::{LexerParseState, RawStringTagType, UVLexerTokens, UVToken},
 };
-
 pub mod types;
 
 pub struct Lexer {
@@ -164,7 +163,7 @@ impl Lexer {
                     }
                 }
 
-                char if !char.is_whitespace() => match self.parse_state {
+                char if Self::is_valid_literal(char) => match self.parse_state {
                     LexerParseState::Default => {
                         self.parse_state = LexerParseState::ParsingLiteral;
                         self.token_start = self.iter.pos - 1;
@@ -174,15 +173,25 @@ impl Lexer {
                     _ => {}
                 },
 
-                char if char.is_whitespace() => match self.parse_state {
+                char if !Self::is_valid_literal(char) => match self.parse_state {
                     LexerParseState::ParsingLiteral => match self.finish_consuming_literal(true) {
-                        Some(str) => iteration_buffer.push(UVToken {
-                            token: UVLexerTokens::Literal(str),
-                            start: self.token_start,
-                            end: self.iter.pos - 1,
-                        }),
+                        Some(str) => {
+                            iteration_buffer.push(UVToken {
+                                token: UVLexerTokens::Literal(str),
+                                start: self.token_start,
+                                end: self.iter.pos - 1,
+                            });
+                            self.iter.step_back();
+                        }
                         _ => {}
                     },
+                    LexerParseState::Default if !char.is_whitespace() => {
+                        iteration_buffer.push(UVToken {
+                            token: UVLexerTokens::Unknown(char),
+                            start: self.iter.pos - 1,
+                            end: self.iter.pos,
+                        })
+                    }
                     _ => {}
                 },
 
@@ -257,8 +266,42 @@ impl Lexer {
         return true;
     }
 
+    fn is_valid_literal(c: char) -> bool {
+        matches!(c, 'a'..='z' | '0'..='9' | '.' | ',' | '_')
+    }
+
     /// Get indexes of each line starts
     pub fn get_lines_indexes(&self) -> Vec<usize> {
         self.lines_map.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::lexer::{Lexer, types::UVLexerTokens};
+
+    #[test]
+    fn parsing_simple() {
+        let code = "<main><test /></main>";
+        let tokens = Lexer::new(code.to_owned())
+            .parse()
+            .into_iter()
+            .map(|t| t.token)
+            .collect::<Vec<UVLexerTokens>>();
+
+        assert_eq!(
+            tokens,
+            [
+                UVLexerTokens::OpeningAngleBracket,
+                UVLexerTokens::Literal("main".to_owned()),
+                UVLexerTokens::ClosingAngleBracket,
+                UVLexerTokens::OpeningAngleBracket,
+                UVLexerTokens::Literal("test".to_owned()),
+                UVLexerTokens::SelfClosingAngleBracket,
+                UVLexerTokens::OpeningAngleBracketSlash,
+                UVLexerTokens::Literal("main".to_owned()),
+                UVLexerTokens::ClosingAngleBracket
+            ]
+        );
     }
 }

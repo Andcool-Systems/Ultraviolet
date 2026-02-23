@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum UVLexerTokens {
     OpeningAngleBracket,
     ClosingAngleBracket,
@@ -8,9 +8,11 @@ pub enum UVLexerTokens {
 
     Literal(String),
     RawString(String),
+
+    Unknown(char),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UVToken {
     pub token: UVLexerTokens,
     pub start: usize,
