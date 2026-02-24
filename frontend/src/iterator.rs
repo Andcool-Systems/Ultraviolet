@@ -1,5 +1,3 @@
-use std::cmp;
-
 #[derive(Clone, Debug)]
 pub struct Iter<T: Clone> {
     pub vec: Vec<T>,
@@ -36,7 +34,7 @@ impl<T: Clone + std::cmp::PartialEq> Iter<T> {
         if self.pos == 0 {
             return None;
         }
-        self.pos = cmp::max(0, self.pos - 1);
+        self.pos -= 1;
         Some(self.vec[self.pos].clone())
     }
 

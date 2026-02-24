@@ -4,6 +4,8 @@ pub struct SourceFile<'a> {
     pub path: &'a Path,
     pub code: String,
     pub line_starts: Vec<usize>,
+
+    char_to_byte: Vec<usize>,
 }
 
 impl<'a> SourceFile<'a> {
@@ -12,11 +14,13 @@ impl<'a> SourceFile<'a> {
         Ok(Self {
             path: path,
             code: code.clone(),
+            char_to_byte: code.char_indices().map(|(i, _)| i).collect(),
             line_starts: std::iter::once(0)
                 .chain(
-                    code.char_indices()
+                    code.chars()
+                        .enumerate()
                         .filter(|(_, c)| *c == '\n')
-                        .map(|(i, c)| i + c.len_utf8()),
+                        .map(|(i, _)| i),
                 )
                 .collect(),
         })
@@ -51,9 +55,12 @@ impl<'a> SourceFile<'a> {
         let code_len = self.code.len();
         let line_index_end = self.line_starts.get(line + 1).unwrap_or(&code_len);
 
+        let line_start_byte = self.char_to_byte.get(*line_index_start).context("")?;
+        let line_end_byte = self.char_to_byte.get(*line_index_end).context("")?;
+
         let line_content = self
             .code
-            .get(*line_index_start..*line_index_end)
+            .get(*line_start_byte..*line_end_byte)
             .context("")?
             .trim_end_matches("\n");
 

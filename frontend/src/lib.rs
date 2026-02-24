@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, str::FromStr};
 
 use crate::{
     errors::error_renderer::ErrorRenderer, lexer::Lexer, tokens_parser::TokenParser,

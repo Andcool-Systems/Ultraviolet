@@ -2,7 +2,7 @@ use crate::{
     errors::{ParseError, traits::Positional},
     types::SourceFile,
 };
-use anyhow::Result;
+use anyhow::{Context, Result};
 use colored::Colorize;
 use std::fmt::Write;
 
@@ -36,7 +36,9 @@ impl ErrorRenderer for ParseError {
         let original_len = line_content.len();
 
         line_content = line_content.trim_start();
-        let col_offsetted = col - (original_len - line_content.len());
+        let col_offsetted = col
+            .checked_sub(original_len - line_content.len())
+            .context("")?;
 
         let error_line_link = self.render_error_line(line, col, source);
 

@@ -281,10 +281,7 @@ impl Lexer {
     }
 
     fn check_comment_and_consume(&mut self) -> bool {
-        self.iter.step_back();
-
-        if !self.iter.starts_with(&['<', '!', '-', '-']) {
-            self.iter.next();
+        if !self.iter.starts_with(&['!', '-', '-']) {
             return false;
         }
 
