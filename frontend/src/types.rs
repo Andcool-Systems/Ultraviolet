@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::{fs, path::Path};
 pub struct SourceFile<'a> {
     pub path: &'a Path,
@@ -44,6 +44,20 @@ impl<'a> SourceFile<'a> {
                 }
             }
         }
+    }
+
+    pub fn get_line_content(&self, line: usize) -> Result<String> {
+        let line_index_start = self.line_starts.get(line).context("")?;
+        let code_len = self.code.len();
+        let line_index_end = self.line_starts.get(line + 1).unwrap_or(&code_len);
+
+        let line_content = self
+            .code
+            .get(*line_index_start..*line_index_end)
+            .context("")?
+            .trim_end_matches("\n");
+
+        Ok(line_content.to_string())
     }
 }
 

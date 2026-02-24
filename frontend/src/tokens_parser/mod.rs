@@ -70,7 +70,10 @@ impl TokenParser {
                         return Ok(tag);
                     }
                     _ => {
-                        return Err(ParseError::new("Unexpected `>`".to_owned(), token.span));
+                        return Err(ParseError::new(
+                            "Unexpected `>` token".to_owned(),
+                            token.span,
+                        ));
                     }
                 },
                 UVLexerTokens::SelfClosingAngleBracket => match parse_state {
@@ -132,7 +135,7 @@ impl TokenParser {
         }
 
         let span = match self.iter.vec.last() {
-            Some(token) => token.span.clone(),
+            Some(token) => Span::new(token.span.end - 3, token.span.end),
             None => Span::default(),
         };
         return Err(ParseError::new("Unexpected EOF".to_owned(), span));
