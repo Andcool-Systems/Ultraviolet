@@ -19,6 +19,14 @@ impl UVParseNode {
             _ => None,
         })
     }
+
+    /// Get first inner literal
+    pub fn get_inner_literal(&self) -> Option<&UVParseLiteral> {
+        self.children.iter().find_map(|ch| match ch {
+            UVParseBody::String(literal) => Some(literal),
+            _ => None,
+        })
+    }
 }
 
 // -------------------------------------
