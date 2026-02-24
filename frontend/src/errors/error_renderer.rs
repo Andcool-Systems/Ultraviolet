@@ -14,7 +14,7 @@ pub trait ErrorRenderer {
 
 impl ErrorRenderer for ParseError {
     fn render_error_line(&self, line: usize, col: usize, source: &SourceFile) -> String {
-        format!("{}:{}:{}", source.path.to_string_lossy(), line + 1, col + 1)
+        format!("{}:{}:{}", source.path.to_string_lossy(), line + 1, col)
     }
 
     fn display_with_source(&self, source: &SourceFile) -> String {
@@ -46,7 +46,7 @@ impl ErrorRenderer for ParseError {
         let line_no_len = editor_line.to_string().len();
 
         let mut output = String::new();
-        writeln!(output, "{}: {}", "error".red(), self.message)?;
+        writeln!(output, "{}: {}", "error".red(), self.message.bold())?;
         writeln!(output, " --> {}", error_line_link)?;
         writeln!(output, " {} |", " ".repeat(line_no_len))?;
         writeln!(output, " {} | {}", editor_line, line_content)?;
@@ -55,7 +55,7 @@ impl ErrorRenderer for ParseError {
             " {} | {}{}",
             " ".repeat(line_no_len),
             " ".repeat(col_offsetted),
-            "^".repeat(self.span.end - self.span.start)
+            "^".repeat(self.span.end - self.span.start).red()
         )?;
 
         Ok(output)
