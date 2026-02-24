@@ -46,7 +46,7 @@ impl<'a> SourceFile<'a> {
         }
     }
 
-    pub fn get_line_content(&self, line: usize) -> Result<String> {
+    pub fn get_line_content(&'a self, line: usize) -> Result<&'a str> {
         let line_index_start = self.line_starts.get(line).context("")?;
         let code_len = self.code.len();
         let line_index_end = self.line_starts.get(line + 1).unwrap_or(&code_len);
@@ -57,7 +57,7 @@ impl<'a> SourceFile<'a> {
             .context("")?
             .trim_end_matches("\n");
 
-        Ok(line_content.to_string())
+        Ok(line_content)
     }
 }
 

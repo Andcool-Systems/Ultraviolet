@@ -11,6 +11,18 @@ pub struct UVParseNode {
     pub span: Span,
 }
 
+impl UVParseNode {
+    /// Get inner TAG child by name
+    pub fn get_child_by_name(&self, name: &str) -> Option<&UVParseNode> {
+        self.children.iter().find_map(|ch| match ch {
+            UVParseBody::Tag(node) if node.name == name => Some(node.as_ref()),
+            _ => None,
+        })
+    }
+}
+
+// -------------------------------------
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct UVParseLiteral {
     pub value: String,

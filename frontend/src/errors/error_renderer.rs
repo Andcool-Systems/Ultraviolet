@@ -35,7 +35,7 @@ impl ErrorRenderer for ParseError {
         let mut line_content = source.get_line_content(line)?;
         let original_len = line_content.len();
 
-        line_content = line_content.trim_start().to_owned();
+        line_content = line_content.trim_start();
         let col_offsetted = col - (original_len - line_content.len());
 
         let error_line_link = self.render_error_line(line, col, source);
