@@ -12,6 +12,11 @@ pub struct UVParseNode {
 }
 
 impl UVParseNode {
+    /// Get count of children
+    pub fn children_len(&self) -> usize {
+        self.children.len()
+    }
+
     /// Get inner TAG child by name
     pub fn get_child_by_name(&self, name: &str) -> Option<&UVParseNode> {
         self.children.iter().find_map(|ch| match ch {
@@ -26,6 +31,14 @@ impl UVParseNode {
             UVParseBody::String(literal) => Some(literal),
             _ => None,
         })
+    }
+
+    /// Get inner TAG at provided index
+    pub fn get_child_node(&self, pos: usize) -> Option<&UVParseNode> {
+        match self.children.get(pos) {
+            Some(UVParseBody::Tag(child)) => Some(child),
+            _ => None,
+        }
     }
 }
 
