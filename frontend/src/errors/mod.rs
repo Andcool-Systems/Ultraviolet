@@ -5,12 +5,14 @@ use crate::{errors::traits::Positional, types::Span};
 pub mod error_renderer;
 pub mod traits;
 
+/// Simple parse error
 pub struct ParseError {
     message: String,
     span: Span,
 }
 
 impl ParseError {
+    /// Create new parse error
     pub fn new(message: String, span: Span) -> Self {
         Self { message, span }
     }

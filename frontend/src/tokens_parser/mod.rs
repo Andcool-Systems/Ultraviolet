@@ -8,17 +8,22 @@ use crate::{
     types::Span,
 };
 
+/**
+Parses a tokens flow to a parse tree
+*/
 pub struct TokenParser {
     iter: Iter<UVToken>,
 }
 
 impl TokenParser {
+    /// Create new TokenParser and pass tokens
     pub fn new(tokens: Vec<UVToken>) -> Self {
         Self {
             iter: Iter::from(tokens),
         }
     }
 
+    /// Parse and get Parse Tree
     pub fn parse(&mut self) -> Result<UVParseNode, ParseError> {
         let mut parse_state = UVParseState::Unknown;
         let mut tag = UVParseNode {

@@ -6,9 +6,15 @@ use anyhow::{Context, Result};
 use colored::Colorize;
 use std::fmt::Write;
 
+/// Trait for positional errors, that renders error messages
 pub trait ErrorRenderer {
+    /// Render error line syntax `<file>:<line>:<col>`
     fn render_error_line(&self, line: usize, col: usize, source: &SourceFile) -> String;
+
+    /// Display simple error with message
     fn display_with_source(&self, source: &SourceFile) -> String;
+
+    /// Render extended error message
     fn render_extended(&self, source: &SourceFile) -> Result<String>;
 }
 

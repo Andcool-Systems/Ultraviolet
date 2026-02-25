@@ -1,14 +1,24 @@
 use anyhow::{Context, Result};
 use std::{fs, path::Path};
+
+/// Representation of input file
 pub struct SourceFile<'a> {
     pub path: &'a Path,
     pub code: String,
+
+    /// Indexes of each line starts
     pub line_starts: Vec<usize>,
 
+    /// char-byte mapping for proper slicing file
     char_to_byte: Vec<usize>,
 }
 
 impl<'a> SourceFile<'a> {
+    /**
+    Load source file from Path
+
+    Returns `Err` when provided file not found or cannot be read
+    */
     pub fn load(path: &'a Path) -> Result<Self> {
         let code: String = fs::read_to_string(path)?;
         Ok(Self {
@@ -26,19 +36,21 @@ impl<'a> SourceFile<'a> {
         })
     }
 
+    /// Get line and column of provided Span
     pub fn get_line_col(&self, span: Span) -> (usize, usize) {
-        let line = Self::find_insert_position(&self.line_starts, span.start).unwrap_or(0);
+        let line = self.get_line(span.start).unwrap_or(0);
         let column = span.start - self.line_starts[line];
 
         (line, column)
     }
 
-    fn find_insert_position(arr: &[usize], target: usize) -> Option<usize> {
-        if arr.is_empty() || target < arr[0] {
+    /// Search line No by provided Span start
+    fn get_line(&self, target: usize) -> Option<usize> {
+        if self.line_starts.is_empty() || target < self.line_starts[0] {
             return None;
         }
 
-        match arr.binary_search(&target) {
+        match self.line_starts.binary_search(&target) {
             Ok(index) => Some(index),
             Err(index) => {
                 if index > 0 {
@@ -50,11 +62,13 @@ impl<'a> SourceFile<'a> {
         }
     }
 
+    /// Get full line by provided line No
     pub fn get_line_content(&'a self, line: usize) -> Result<&'a str> {
         let line_index_start = self.line_starts.get(line).context("")?;
         let code_len = self.code.len();
         let line_index_end = self.line_starts.get(line + 1).unwrap_or(&code_len);
 
+        // Convert char indexes to a bytes
         let line_start_byte = self.char_to_byte.get(*line_index_start).context("")?;
         let line_end_byte = self.char_to_byte.get(*line_index_end).context("")?;
 
@@ -69,12 +83,15 @@ impl<'a> SourceFile<'a> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+
+/// Span displays the portion of the source code that a token or AST node occupies
 pub struct Span {
     pub start: usize,
     pub end: usize,
 }
 
 impl Span {
+    /// Create new Span with provided start and end indexes
     pub fn new(s: usize, e: usize) -> Self {
         Self { start: s, end: e }
     }
