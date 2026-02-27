@@ -153,7 +153,7 @@ mod tests {
         lexer::Lexer,
         tokens_parser::{
             TokenParser,
-            types::{UVParseBody, UVParseNode},
+            types::{UVParseBody, UVParseLiteral, UVParseNode},
         },
         types::Span,
     };
@@ -182,5 +182,28 @@ mod tests {
                 span: Span::new(0, 21)
             }
         )
+    }
+
+    #[test]
+    fn literal() {
+        assert_eq!(
+            get_nodes("<main>literal</main>"),
+            UVParseNode {
+                name: "main".to_owned(),
+                children: vec![UVParseBody::String(UVParseLiteral {
+                    value: "literal".to_owned(),
+                    span: Span::new(6, 13)
+                })],
+                self_closing: false,
+                extra_param: String::new(),
+                span: Span::new(0, 20)
+            }
+        )
+    }
+
+    #[test]
+    #[should_panic]
+    fn unexpected_token() {
+        get_nodes("<main>literal?</main>");
     }
 }

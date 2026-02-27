@@ -6,6 +6,7 @@ use crate::{
 };
 use anyhow::Result;
 
+mod ast;
 mod errors;
 mod iterator;
 mod lexer;
