@@ -1,6 +1,4 @@
-use std::sync::mpsc::Sender;
-
-use crate::ast::traits::{GetType, IsAssignable, StringToType};
+use crate::ast::traits::{GetType, GetTypeScope, IsAssignable, StringToType};
 
 /// Typed value container
 pub enum UVValue {
@@ -12,7 +10,7 @@ pub enum UVValue {
 }
 
 impl GetType for UVValue {
-    fn get_type(&self, _scope: Option<usize>) -> UVType {
+    fn get_type(&self) -> UVType {
         match self {
             UVValue::Int(_) => UVType::Int,
             UVValue::Float(_) => UVType::Float,
@@ -73,15 +71,49 @@ pub enum Symbol {
     Variable(String),
 }
 
-impl GetType for Symbol {
-    fn get_type(&self, scope: Option<usize>) -> UVType {
+impl GetTypeScope for Symbol {
+    fn get_type_from_scope(&self, scope: Option<usize>) -> UVType {
         match self {
-            Self::Primitive(val) => val.get_type(None),
+            Self::Primitive(val) => val.get_type(),
             // Scope-based search of the final primitive
             Self::Variable(var) => todo!(),
         }
     }
 }
+
+// --------------------------- AST-TYPES ---------------------------
+
+pub enum ASTBlockType {
+    VariableDefinition(VariableDefinition),
+    FunctionDefinition(),
+
+    FunctionCall(),
+    VariableAssignment(),
+
+    ConditionalOp(),
+
+    MathOp(),
+    LogicalOp(),
+
+    ForLoop(),
+    WhileLoop(),
+
+    Type(UVType),
+}
+
+pub struct VariableDefinition {
+    pub name: String,
+    pub value: UVValue,
+    pub is_const: bool,
+}
+
+impl GetType for VariableDefinition {
+    fn get_type(&self) -> UVType {
+        self.value.get_type()
+    }
+}
+
+// ---------------------------- TESTS -------------------------------
 
 #[cfg(test)]
 mod tests {
