@@ -1,6 +1,6 @@
 use std::sync::mpsc::Sender;
 
-use crate::ast::traits::{GetType, IsCompatible};
+use crate::ast::traits::{GetType, IsCompatible, StringToType};
 
 /// Typed value container
 pub enum UVValue {
@@ -24,7 +24,7 @@ impl GetType for UVValue {
 }
 
 /// Ultraviolet primitive types
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum UVType {
     Int,
     Float,
@@ -36,16 +36,30 @@ pub enum UVType {
 }
 
 impl IsCompatible for UVType {
-    fn is_compatible(&self, other: &UVType) -> bool {
+    fn is_compatible_with(&self, other: &UVType) -> bool {
         if self == other {
             return true;
         }
 
         match (self, other) {
-            (_, UVType::Union(types)) => types.iter().any(|t| self.is_compatible(t)),
-            (UVType::Union(types), _) => types.iter().any(|t| t.is_compatible(other)),
+            (_, UVType::Union(types)) => types.iter().any(|t| self.is_compatible_with(t)),
+            (UVType::Union(types), _) => types.iter().any(|t| t.is_compatible_with(other)),
 
             _ => false,
+        }
+    }
+}
+
+// -------------------- String-Type conversion --------------
+impl StringToType for String {
+    fn str_to_uvtype(&self) -> Option<UVType> {
+        match self.as_str() {
+            "int" => Some(UVType::Int),
+            "float" => Some(UVType::Float),
+            "str" => Some(UVType::String),
+            "bool" => Some(UVType::Boolean),
+            "null" => Some(UVType::Null),
+            _ => None,
         }
     }
 }
@@ -66,5 +80,39 @@ impl GetType for Symbol {
             // Scope-based search of the final primitive
             Self::Variable(var) => todo!(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::ast::{
+        traits::{IsCompatible, StringToType},
+        types::UVType,
+    };
+
+    #[test]
+    fn parse_type() {
+        assert_eq!(String::from("int").str_to_uvtype(), Some(UVType::Int));
+        assert_eq!(String::from("bool").str_to_uvtype(), Some(UVType::Boolean));
+        assert_eq!(String::from("float").str_to_uvtype(), Some(UVType::Float));
+        assert_eq!(String::from("null").str_to_uvtype(), Some(UVType::Null));
+        assert_eq!(String::from("str").str_to_uvtype(), Some(UVType::String));
+
+        assert_eq!(String::from("unknown").str_to_uvtype(), None);
+    }
+
+    #[test]
+    fn type_compatible_with() {
+        assert_eq!(
+            UVType::Union(vec![UVType::Int, UVType::Null]).is_compatible_with(&UVType::Null),
+            true
+        );
+
+        assert_eq!(
+            UVType::Int.is_compatible_with(&UVType::Union(vec![UVType::Int, UVType::Null])),
+            true
+        );
+
+        assert_eq!(UVType::Int.is_compatible_with(&UVType::Boolean), false);
     }
 }

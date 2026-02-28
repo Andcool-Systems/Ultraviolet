@@ -1,4 +1,7 @@
 {
     "files.autoSave": "afterDelay",
-    "files.autoSaveDelay": 250
+    "files.autoSaveDelay": 250,
+    "cSpell.words": [
+        "uvtype"
+    ]
 }
