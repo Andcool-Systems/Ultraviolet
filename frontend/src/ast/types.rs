@@ -1,6 +1,6 @@
 use std::sync::mpsc::Sender;
 
-use crate::ast::traits::{GetType, IsCompatible, StringToType};
+use crate::ast::traits::{GetType, IsAssignable, StringToType};
 
 /// Typed value container
 pub enum UVValue {
@@ -35,15 +35,15 @@ pub enum UVType {
     Union(Vec<UVType>),
 }
 
-impl IsCompatible for UVType {
-    fn is_compatible_with(&self, other: &UVType) -> bool {
+impl IsAssignable for UVType {
+    fn is_assignable_from(&self, other: &UVType) -> bool {
         if self == other {
             return true;
         }
 
         match (self, other) {
-            (_, UVType::Union(types)) => types.iter().any(|t| self.is_compatible_with(t)),
-            (UVType::Union(types), _) => types.iter().any(|t| t.is_compatible_with(other)),
+            (_, UVType::Union(types)) => types.iter().all(|t| self.is_assignable_from(t)),
+            (UVType::Union(types), _) => types.iter().any(|t| t.is_assignable_from(other)),
 
             _ => false,
         }
@@ -86,7 +86,7 @@ impl GetType for Symbol {
 #[cfg(test)]
 mod tests {
     use crate::ast::{
-        traits::{IsCompatible, StringToType},
+        traits::{IsAssignable, StringToType},
         types::UVType,
     };
 
@@ -104,15 +104,15 @@ mod tests {
     #[test]
     fn type_compatible_with() {
         assert_eq!(
-            UVType::Union(vec![UVType::Int, UVType::Null]).is_compatible_with(&UVType::Null),
+            UVType::Union(vec![UVType::Int, UVType::Null]).is_assignable_from(&UVType::Null),
             true
         );
 
         assert_eq!(
-            UVType::Int.is_compatible_with(&UVType::Union(vec![UVType::Int, UVType::Null])),
-            true
+            UVType::Int.is_assignable_from(&UVType::Union(vec![UVType::Int, UVType::Null])),
+            false
         );
 
-        assert_eq!(UVType::Int.is_compatible_with(&UVType::Boolean), false);
+        assert_eq!(UVType::Int.is_assignable_from(&UVType::Boolean), false);
     }
 }
