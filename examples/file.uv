@@ -1,9 +1,12 @@
 <program>
+
     <head></head>
     <main>
         <let>
             <name>aa</name>
-            <value><null/></value>
+            <value>
+                <float>6.3</float>
+            </value>
             <const />
         </let>
     </main>

@@ -53,9 +53,10 @@ impl IsAssignable for UVType {
 }
 
 // -------------------- String-Type conversion --------------
-impl StringToUVType for String {
+
+impl StringToUVType for str {
     fn to_uvtype(&self) -> Option<UVType> {
-        match self.as_str() {
+        match self {
             "int" => Some(UVType::Int),
             "float" => Some(UVType::Float),
             "str" => Some(UVType::String),

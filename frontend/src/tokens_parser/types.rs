@@ -1,4 +1,7 @@
-use crate::types::{Span, TypeWithSpan};
+use crate::{
+    errors::traits::Positional,
+    types::{Span, TypeWithSpan},
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UVParseNode {
@@ -54,15 +57,36 @@ impl UVParseNode {
             .iter()
             .all(|ch| matches!(ch, UVParseBody::Tag(_)))
     }
+
+    /// Search extra children, that not included in white list
+    pub fn search_extra_children(&self, white_list: Vec<impl Into<String>>) -> Vec<UVParseBody> {
+        let white_list_strings: Vec<String> = white_list.into_iter().map(|s| s.into()).collect();
+        self.children
+            .iter()
+            .filter(|ch| match ch {
+                UVParseBody::Tag(node) => !white_list_strings.contains(&node.name),
+                _ => true,
+            })
+            .cloned()
+            .collect()
+    }
 }
 
 // -------------------------------------
 
 #[derive(Debug, Clone, PartialEq)]
-#[allow(dead_code)] // TODO: Remove
 pub enum UVParseBody {
     String(TypeWithSpan<String>),
     Tag(Box<UVParseNode>),
+}
+
+impl Positional for UVParseBody {
+    fn get_span(&self) -> Span {
+        match self {
+            UVParseBody::String(type_with_span) => type_with_span.span.clone(),
+            UVParseBody::Tag(uvparse_node) => uvparse_node.span.clone(),
+        }
+    }
 }
 
 #[derive(Debug)]

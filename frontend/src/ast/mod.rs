@@ -8,10 +8,11 @@ use crate::{
         types::{ASTBlockType, ProgramBlock, VariableDefinition},
         values::parse_value,
     },
-    errors::SpannedError,
+    errors::{SpannedError, traits::Positional},
     tokens_parser::types::{UVParseBody, UVParseNode},
     types::TypeWithSpan,
 };
+use once_cell::sync::Lazy;
 
 mod traits;
 mod types;
@@ -19,9 +20,11 @@ mod values;
 
 type GeneratorOutputType = Result<ASTBlockType, SpannedError>;
 
+static IDENT_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*$").unwrap());
+
 /// Check if provided string is a valid var/fn identifier
 fn is_valid_identifier(s: &str) -> bool {
-    Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*$").unwrap().is_match(s)
+    IDENT_REGEX.is_match(s)
 }
 
 pub fn gen_main_ast(parse_tree: UVParseNode) -> GeneratorOutputType {
@@ -40,7 +43,7 @@ pub fn generate_ast(parse_tree: UVParseNode) -> GeneratorOutputType {
         "let" => parse_var_definition(parse_tree)?,
 
         // Values such as int, float, etc.
-        name if name.to_owned().to_uvtype().is_some() => parse_value(parse_tree)?,
+        name if name.to_uvtype().is_some() => parse_value(parse_tree)?,
 
         name => {
             return Err(SpannedError::new(
@@ -98,6 +101,15 @@ fn parse_root_children(children: Vec<UVParseBody>) -> Result<Vec<ASTBlockType>, 
 
 /// Parse definition of variables <let>
 fn parse_var_definition(node: UVParseNode) -> GeneratorOutputType {
+    let extra = node.search_extra_children(vec!["name", "value", "const"]);
+    if !extra.is_empty() {
+        let first = extra.first().unwrap();
+        return Err(SpannedError::new(
+            "Found extra children for variable definition",
+            first.get_span(),
+        ));
+    }
+
     let name_block = node.get_child_by_name("name").ok_or(SpannedError::new(
         "Variable definition should have an inner <name> tag",
         node.span.clone(),
