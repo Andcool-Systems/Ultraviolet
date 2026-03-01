@@ -137,9 +137,15 @@ fn parse_var_definition(node: UVParseNode) -> GeneratorOutputType {
 
     let value = value_block.get_child_node(0).unwrap(); // This unwrap is unreachable due checks above
 
+    let is_const = if let Some(c) = node.get_child_by_name("const") {
+        c.self_closing
+    } else {
+        false
+    };
+
     Ok(ASTBlockType::VariableDefinition(VariableDefinition {
         name: name.value.clone(),
         value: Box::new(generate_ast(value.clone())?),
-        is_const: false, // TODO: Implement this
+        is_const: is_const,
     }))
 }

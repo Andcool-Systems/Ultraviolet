@@ -4,6 +4,7 @@
         <let>
             <name>aa</name>
             <value><null/></value>
+            <const />
         </let>
     </main>
 
