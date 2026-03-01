@@ -1,4 +1,4 @@
-use crate::ast::types::{ASTBlockType, UVType};
+use crate::ast::types::UVType;
 
 pub trait GetType {
     /// Get type of node / value

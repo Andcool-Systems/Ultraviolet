@@ -3,13 +3,18 @@ use colored::Colorize;
 use regex::Regex;
 
 use crate::{
-    ast::types::{ASTBlockType, ProgramBlock, VariableDefinition},
+    ast::{
+        traits::StringToUVType,
+        types::{ASTBlockType, ProgramBlock, VariableDefinition},
+        values::parse_value,
+    },
     errors::SpannedError,
     tokens_parser::types::{UVParseBody, UVParseNode},
 };
 
 mod traits;
 mod types;
+mod values;
 
 type GeneratorOutputType = Result<ASTBlockType, SpannedError>;
 
@@ -32,6 +37,10 @@ pub fn gen_main_ast(parse_tree: UVParseNode) -> GeneratorOutputType {
 pub fn generate_ast(parse_tree: UVParseNode) -> GeneratorOutputType {
     Ok(match parse_tree.name.as_str() {
         "let" => parse_var_definition(parse_tree)?,
+
+        // Values such as int, float, etc.
+        name if name.to_owned().to_uvtype().is_some() => parse_value(parse_tree)?,
+
         name => {
             return Err(SpannedError::new(
                 format!("Unexpected <{name}> tag").as_str(),

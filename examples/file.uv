@@ -3,7 +3,7 @@
     <main>
         <let>
             <name>aa</name>
-            <value>aaa</value>
+            <value><null/></value>
         </let>
     </main>
 

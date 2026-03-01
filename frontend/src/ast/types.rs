@@ -67,6 +67,7 @@ impl StringToUVType for String {
 }
 
 // ---------------
+/*
 #[derive(Debug)]
 pub enum Symbol {
     /// Primitive type
@@ -85,6 +86,7 @@ impl GetTypeScope for Symbol {
         }
     }
 }
+*/
 
 // --------------------------- AST-TYPES ---------------------------
 #[derive(Debug)]
@@ -108,7 +110,7 @@ pub enum ASTBlockType {
     ForLoop(),
     WhileLoop(),
 
-    Value(),
+    Value(UVValue),
     Type(UVType),
 
     GroupBlock(),
