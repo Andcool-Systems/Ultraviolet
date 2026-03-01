@@ -1,6 +1,10 @@
-use crate::ast::traits::{GetType, GetTypeScope, IsAssignable, StringToType};
+use crate::{
+    ast::traits::{GetType, GetTypeScope, IsAssignable, StringToUVType},
+    types::Span,
+};
 
 /// Typed value container
+#[derive(Debug)]
 pub enum UVValue {
     Int(i64),
     Float(f64),
@@ -49,8 +53,8 @@ impl IsAssignable for UVType {
 }
 
 // -------------------- String-Type conversion --------------
-impl StringToType for String {
-    fn str_to_uvtype(&self) -> Option<UVType> {
+impl StringToUVType for String {
+    fn to_uvtype(&self) -> Option<UVType> {
         match self.as_str() {
             "int" => Some(UVType::Int),
             "float" => Some(UVType::Float),
@@ -63,6 +67,7 @@ impl StringToType for String {
 }
 
 // ---------------
+#[derive(Debug)]
 pub enum Symbol {
     /// Primitive type
     Primitive(UVValue),
@@ -82,8 +87,13 @@ impl GetTypeScope for Symbol {
 }
 
 // --------------------------- AST-TYPES ---------------------------
-
+#[derive(Debug)]
 pub enum ASTBlockType {
+    Program(Box<ProgramBlock>),
+
+    HeadBlock(Vec<ASTBlockType>),
+    MainBlock(Vec<ASTBlockType>),
+
     VariableDefinition(VariableDefinition),
     FunctionDefinition(),
 
@@ -98,18 +108,34 @@ pub enum ASTBlockType {
     ForLoop(),
     WhileLoop(),
 
+    Value(),
     Type(UVType),
+
+    GroupBlock(),
 }
 
+// --------------------------- PROGRAM BLOCK ------------------------
+
+#[derive(Debug)]
+pub struct ProgramBlock {
+    pub head: Option<ASTBlockType>,
+    pub main: ASTBlockType,
+
+    pub span: Span,
+}
+
+// --------------------------- VariableDefinition BLOCK ------------------------
+
+#[derive(Debug)]
 pub struct VariableDefinition {
     pub name: String,
-    pub value: UVValue,
+    pub value: Box<ASTBlockType>,
     pub is_const: bool,
 }
 
 impl GetType for VariableDefinition {
     fn get_type(&self) -> UVType {
-        self.value.get_type()
+        todo!()
     }
 }
 
@@ -118,19 +144,19 @@ impl GetType for VariableDefinition {
 #[cfg(test)]
 mod tests {
     use crate::ast::{
-        traits::{IsAssignable, StringToType},
+        traits::{IsAssignable, StringToUVType},
         types::UVType,
     };
 
     #[test]
     fn parse_type() {
-        assert_eq!(String::from("int").str_to_uvtype(), Some(UVType::Int));
-        assert_eq!(String::from("bool").str_to_uvtype(), Some(UVType::Boolean));
-        assert_eq!(String::from("float").str_to_uvtype(), Some(UVType::Float));
-        assert_eq!(String::from("null").str_to_uvtype(), Some(UVType::Null));
-        assert_eq!(String::from("str").str_to_uvtype(), Some(UVType::String));
+        assert_eq!(String::from("int").to_uvtype(), Some(UVType::Int));
+        assert_eq!(String::from("bool").to_uvtype(), Some(UVType::Boolean));
+        assert_eq!(String::from("float").to_uvtype(), Some(UVType::Float));
+        assert_eq!(String::from("null").to_uvtype(), Some(UVType::Null));
+        assert_eq!(String::from("str").to_uvtype(), Some(UVType::String));
 
-        assert_eq!(String::from("unknown").str_to_uvtype(), None);
+        assert_eq!(String::from("unknown").to_uvtype(), None);
     }
 
     #[test]

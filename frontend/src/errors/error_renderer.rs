@@ -1,10 +1,10 @@
 use crate::{
-    errors::{ParseError, traits::Positional},
+    errors::{SpannedError, traits::Positional},
     types::SourceFile,
 };
 use anyhow::{Context, Result};
 use colored::Colorize;
-use std::fmt::Write;
+use std::{cmp::min, fmt::Write};
 
 /// Trait for positional errors, that renders error messages
 pub trait ErrorRenderer {
@@ -18,7 +18,7 @@ pub trait ErrorRenderer {
     fn render_extended(&self, source: &SourceFile) -> Result<String>;
 }
 
-impl ErrorRenderer for ParseError {
+impl ErrorRenderer for SpannedError {
     fn render_error_line(&self, line: usize, col: usize, source: &SourceFile) -> String {
         format!("{}:{}:{}", source.path.to_string_lossy(), line + 1, col)
     }
@@ -61,7 +61,8 @@ impl ErrorRenderer for ParseError {
             " {} | {}{}",
             " ".repeat(line_no_len),
             " ".repeat(col_offsetted),
-            "^".repeat(self.span.end - self.span.start).red()
+            "^".repeat(min(self.span.end - self.span.start, line_content.len() - 1))
+                .red()
         )?;
 
         Ok(output)

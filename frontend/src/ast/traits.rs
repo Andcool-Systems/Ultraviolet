@@ -1,4 +1,4 @@
-use crate::ast::types::UVType;
+use crate::ast::types::{ASTBlockType, UVType};
 
 pub trait GetType {
     /// Get type of node / value
@@ -20,10 +20,10 @@ pub trait IsAssignable {
     fn is_assignable_from(&self, other: &UVType) -> bool;
 }
 
-pub trait StringToType {
+pub trait StringToUVType {
     /// Convert string-representation to a Ultraviolet type
     ///
     /// Example:
-    /// `String::from("int").str_to_uvtype();`
-    fn str_to_uvtype(&self) -> Option<UVType>;
+    /// `String::from("int").to_uvtype();`
+    fn to_uvtype(&self) -> Option<UVType>;
 }

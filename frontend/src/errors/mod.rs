@@ -6,29 +6,43 @@ pub mod error_renderer;
 pub mod traits;
 
 /// Simple parse error
-pub struct ParseError {
+pub struct SpannedError {
     message: String,
     span: Span,
 }
 
-impl ParseError {
+impl SpannedError {
     /// Create new parse error
-    pub fn new(message: String, span: Span) -> Self {
-        Self { message, span }
+    pub fn new<'a>(message: &'a str, span: Span) -> Self {
+        Self {
+            message: message.to_owned(),
+            span,
+        }
     }
 }
 
-impl Positional for ParseError {
+impl Positional for SpannedError {
     fn get_span(&self) -> Span {
         self.span.clone()
     }
 }
 
-impl fmt::Debug for ParseError {
+impl fmt::Debug for SpannedError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ParseError")
+        f.debug_struct("SpannedError")
             .field("message", &self.message)
             .field("span", &self.span)
             .finish()
     }
 }
+
+impl fmt::Display for SpannedError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SpannedError")
+            .field("message", &self.message)
+            .field("span", &self.span)
+            .finish()
+    }
+}
+
+impl std::error::Error for SpannedError {}
