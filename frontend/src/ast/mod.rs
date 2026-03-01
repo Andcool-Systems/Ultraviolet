@@ -5,7 +5,7 @@ use regex::Regex;
 use crate::{
     ast::{
         traits::StringToUVType,
-        types::{ASTBlockType, ProgramBlock, VariableDefinition},
+        types::{ASTBlockType, ProgramBlock, TypeWithSpan, VariableDefinition},
         values::parse_value,
     },
     errors::SpannedError,
@@ -144,8 +144,13 @@ fn parse_var_definition(node: UVParseNode) -> GeneratorOutputType {
     };
 
     Ok(ASTBlockType::VariableDefinition(VariableDefinition {
-        name: name.value.clone(),
-        value: Box::new(generate_ast(value.clone())?),
+        name: TypeWithSpan::new(name.value.clone(), name_block.span.clone()),
+        value: TypeWithSpan::new(
+            Box::new(generate_ast(value.clone())?),
+            value_block.span.clone(),
+        ),
         is_const: is_const,
+
+        span: node.span,
     }))
 }

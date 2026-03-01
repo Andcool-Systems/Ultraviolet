@@ -1,5 +1,5 @@
 use crate::{
-    ast::traits::{GetType, GetTypeScope, IsAssignable, StringToUVType},
+    ast::traits::{GetType, IsAssignable, StringToUVType},
     types::Span,
 };
 
@@ -63,6 +63,18 @@ impl StringToUVType for String {
             "null" => Some(UVType::Null),
             _ => None,
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct TypeWithSpan<T> {
+    pub value: T,
+    pub span: Span,
+}
+
+impl<T> TypeWithSpan<T> {
+    pub fn new(value: T, span: Span) -> Self {
+        Self { value, span }
     }
 }
 
@@ -130,9 +142,11 @@ pub struct ProgramBlock {
 
 #[derive(Debug)]
 pub struct VariableDefinition {
-    pub name: String,
-    pub value: Box<ASTBlockType>,
+    pub name: TypeWithSpan<String>,
+    pub value: TypeWithSpan<Box<ASTBlockType>>,
     pub is_const: bool,
+
+    pub span: Span,
 }
 
 impl GetType for VariableDefinition {
