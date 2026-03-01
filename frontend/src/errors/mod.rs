@@ -1,9 +1,8 @@
 use std::fmt;
 
-use crate::{errors::traits::Positional, types::Span};
+use crate::types::{Positional, Span};
 
 pub mod error_renderer;
-pub mod traits;
 
 /// Simple parse error
 pub struct SpannedError {

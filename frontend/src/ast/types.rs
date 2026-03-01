@@ -1,6 +1,6 @@
 use crate::{
     ast::traits::{GetType, IsAssignable, StringToUVType},
-    types::{Span, TypeWithSpan},
+    types::{Span, Spanned},
 };
 
 /// Typed value container
@@ -131,8 +131,8 @@ pub struct ProgramBlock {
 
 #[derive(Debug)]
 pub struct VariableDefinition {
-    pub name: TypeWithSpan<String>,
-    pub value: TypeWithSpan<Box<ASTBlockType>>,
+    pub name: Spanned<String>,
+    pub value: Spanned<Box<ASTBlockType>>,
     pub is_const: bool,
 
     pub span: Span,

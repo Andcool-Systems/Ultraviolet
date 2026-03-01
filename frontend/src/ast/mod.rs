@@ -8,9 +8,9 @@ use crate::{
         types::{ASTBlockType, ProgramBlock, VariableDefinition},
         values::parse_value,
     },
-    errors::{SpannedError, traits::Positional},
+    errors::SpannedError,
     tokens_parser::types::{UVParseBody, UVParseNode},
-    types::TypeWithSpan,
+    types::{Positional, Spanned},
 };
 use once_cell::sync::Lazy;
 
@@ -148,7 +148,6 @@ fn parse_var_definition(node: UVParseNode) -> GeneratorOutputType {
     }
 
     let value = value_block.get_child_node(0).unwrap(); // This unwrap is unreachable due checks above
-
     let is_const = if let Some(c) = node.get_child_by_name("const") {
         c.self_closing
     } else {
@@ -156,13 +155,12 @@ fn parse_var_definition(node: UVParseNode) -> GeneratorOutputType {
     };
 
     Ok(ASTBlockType::VariableDefinition(VariableDefinition {
-        name: TypeWithSpan::new(name.value.clone(), name_block.span.clone()),
-        value: TypeWithSpan::new(
+        name: Spanned::new(name.value.clone(), name_block.span.clone()),
+        value: Spanned::new(
             Box::new(generate_ast(value.clone())?),
             value_block.span.clone(),
         ),
         is_const: is_const,
-
         span: node.span,
     }))
 }

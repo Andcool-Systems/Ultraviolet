@@ -103,13 +103,18 @@ impl Default for Span {
     }
 }
 
+pub trait Positional {
+    /// Get associated Span
+    fn get_span(&self) -> Span;
+}
+
 #[derive(Debug, Clone, PartialEq)]
-pub struct TypeWithSpan<T> {
+pub struct Spanned<T> {
     pub value: T,
     pub span: Span,
 }
 
-impl<T> TypeWithSpan<T> {
+impl<T> Spanned<T> {
     pub fn new(value: T, span: Span) -> Self {
         Self { value, span }
     }

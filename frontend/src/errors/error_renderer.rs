@@ -1,6 +1,6 @@
 use crate::{
-    errors::{SpannedError, traits::Positional},
-    types::SourceFile,
+    errors::SpannedError,
+    types::{Positional, SourceFile},
 };
 use anyhow::{Context, Result};
 use colored::Colorize;

@@ -1,7 +1,4 @@
-use crate::{
-    errors::traits::Positional,
-    types::{Span, TypeWithSpan},
-};
+use crate::types::{Positional, Span, Spanned};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UVParseNode {
@@ -29,7 +26,7 @@ impl UVParseNode {
     }
 
     /// Get first inner literal
-    pub fn get_inner_literal(&self) -> Option<&TypeWithSpan<String>> {
+    pub fn get_inner_literal(&self) -> Option<&Spanned<String>> {
         self.children.iter().find_map(|ch| match ch {
             UVParseBody::String(literal) => Some(literal),
             _ => None,
@@ -76,7 +73,7 @@ impl UVParseNode {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum UVParseBody {
-    String(TypeWithSpan<String>),
+    String(Spanned<String>),
     Tag(Box<UVParseNode>),
 }
 

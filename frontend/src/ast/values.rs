@@ -13,10 +13,15 @@ pub fn parse_value(node: UVParseNode) -> Result<ASTBlockType, SpannedError> {
         "str" => ASTBlockType::Value(UVValue::String(parse_str(node))),
         "bool" => ASTBlockType::Value(UVValue::Boolean(parse_boolean(node)?)),
         "null" => {
-            validate_null(node)?;
+            validate_null(&node)?;
             ASTBlockType::Value(UVValue::Null)
         }
-        _ => unreachable!(),
+        _ => {
+            return Err(SpannedError::new(
+                format!("Unknown value type `{}`", node.name),
+                node.span.clone(),
+            ));
+        }
     })
 }
 
@@ -49,7 +54,7 @@ fn parse_float(node: UVParseNode) -> Result<f64, SpannedError> {
 
     inner_contents.value.parse::<f64>().map_err(|_| {
         SpannedError::new(
-            format!("Cannot parse `{}` to an float", inner_contents.value),
+            format!("Cannot parse `{}` to a float", inner_contents.value),
             inner_contents.span.clone(),
         )
     })
@@ -79,7 +84,7 @@ fn parse_boolean(node: UVParseNode) -> Result<bool, SpannedError> {
     }
 }
 
-fn validate_null(node: UVParseNode) -> Result<(), SpannedError> {
+fn validate_null(node: &UVParseNode) -> Result<(), SpannedError> {
     if !node.self_closing {
         return Err(SpannedError::new(
             "`null` tag must be self-closing",
