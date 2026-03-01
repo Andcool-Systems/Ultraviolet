@@ -44,7 +44,7 @@ pub fn generate_ast(parse_tree: UVParseNode) -> GeneratorOutputType {
 
         name => {
             return Err(SpannedError::new(
-                format!("Unexpected <{name}> tag").as_str(),
+                format!("Unexpected <{name}> tag"),
                 parse_tree.span.clone(),
             ));
         }
@@ -114,7 +114,7 @@ fn parse_var_definition(node: UVParseNode) -> GeneratorOutputType {
 
     if !is_valid_identifier(&name.value) {
         return Err(SpannedError::new(
-            format!("`{}` is not a valid name for variable", name.value).as_str(),
+            format!("`{}` is not a valid name for variable", name.value),
             name.span.clone(),
         ));
     }
@@ -130,8 +130,7 @@ fn parse_var_definition(node: UVParseNode) -> GeneratorOutputType {
                 "Variable value must have only one inner tag.\n{}{}",
                 "tip".green(),
                 ": If you want to place multiple tags, wrap them in a <b> tag.",
-            )
-            .as_str(),
+            ),
             value_block.span.clone(),
         ));
     }

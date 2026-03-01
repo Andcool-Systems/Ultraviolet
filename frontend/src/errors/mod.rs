@@ -13,9 +13,9 @@ pub struct SpannedError {
 
 impl SpannedError {
     /// Create new parse error
-    pub fn new<'a>(message: &'a str, span: Span) -> Self {
+    pub fn new(message: impl Into<String>, span: Span) -> Self {
         Self {
-            message: message.to_owned(),
+            message: message.into(),
             span,
         }
     }

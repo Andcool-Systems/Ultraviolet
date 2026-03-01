@@ -60,8 +60,7 @@ impl TokenParser {
                                 format!(
                                     "Unexpected closing tag `{}`. Expected `{}`",
                                     closing_tag_name, tag.name
-                                )
-                                .as_str(),
+                                ),
                                 Span::new(
                                     token.span.start - closing_tag_name.len(),
                                     token.span.end - 1,
@@ -114,14 +113,14 @@ impl TokenParser {
                     }
                     _ => {
                         return Err(SpannedError::new(
-                            format!("Unexpected literal `{}`", lit).as_str(),
+                            format!("Unexpected literal `{}`", lit),
                             token.span,
                         ));
                     }
                 },
                 UVLexerTokens::Unknown(ch) => {
                     return Err(SpannedError::new(
-                        format!("Unexpected token: `{}`", ch).as_str(),
+                        format!("Unexpected token: `{}`", ch),
                         token.span,
                     ));
                 }

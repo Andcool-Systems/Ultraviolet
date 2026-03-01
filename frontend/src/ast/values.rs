@@ -24,7 +24,7 @@ pub fn parse_value(node: UVParseNode) -> Result<ASTBlockType, SpannedError> {
 fn validate_inner(node: &UVParseNode) -> Result<(), SpannedError> {
     if node.children_len() != 1 || !node.all_literals() {
         return Err(SpannedError::new(
-            format!("Invalid value for `{}` type", node.name).as_str(),
+            format!("Invalid value for `{}` type", node.name),
             node.span.clone(),
         ));
     }
@@ -37,7 +37,7 @@ fn parse_int(node: UVParseNode) -> Result<i64, SpannedError> {
 
     inner_contents.value.parse::<i64>().map_err(|_| {
         SpannedError::new(
-            format!("Cannot parse `{}` to an integer", inner_contents.value).as_str(),
+            format!("Cannot parse `{}` to an integer", inner_contents.value),
             inner_contents.span.clone(),
         )
     })
@@ -49,7 +49,7 @@ fn parse_float(node: UVParseNode) -> Result<f64, SpannedError> {
 
     inner_contents.value.parse::<f64>().map_err(|_| {
         SpannedError::new(
-            format!("Cannot parse `{}` to an float", inner_contents.value).as_str(),
+            format!("Cannot parse `{}` to an float", inner_contents.value),
             inner_contents.span.clone(),
         )
     })
@@ -73,7 +73,7 @@ fn parse_boolean(node: UVParseNode) -> Result<bool, SpannedError> {
         "1" | "true" => Ok(true),
         "0" | "false" => Ok(false),
         _ => Err(SpannedError::new(
-            format!("Cannot parse `{}` to a boolean", inner_contents.value).as_str(),
+            format!("Cannot parse `{}` to a boolean", inner_contents.value),
             inner_contents.span.clone(),
         )),
     }
