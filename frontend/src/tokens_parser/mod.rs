@@ -4,8 +4,8 @@ use crate::{
     errors::SpannedError,
     iterator::Iter,
     lexer::types::{UVLexerTokens, UVToken},
-    tokens_parser::types::{UVParseBody, UVParseLiteral, UVParseNode, UVParseState},
-    types::Span,
+    tokens_parser::types::{UVParseBody, UVParseNode, UVParseState},
+    types::{Span, TypeWithSpan},
 };
 
 /**
@@ -103,7 +103,7 @@ impl TokenParser {
                     }
 
                     UVParseState::TagBody => {
-                        tag.children.push(UVParseBody::String(UVParseLiteral {
+                        tag.children.push(UVParseBody::String(TypeWithSpan {
                             value: lit.to_owned(),
                             span: Span::new(token.span.start, token.span.end),
                         }));
@@ -142,9 +142,9 @@ mod tests {
         lexer::Lexer,
         tokens_parser::{
             TokenParser,
-            types::{UVParseBody, UVParseLiteral, UVParseNode},
+            types::{UVParseBody, UVParseNode},
         },
-        types::Span,
+        types::{Span, TypeWithSpan},
     };
 
     fn get_nodes(code: &str) -> UVParseNode {
@@ -179,7 +179,7 @@ mod tests {
             get_nodes("<main>literal</main>"),
             UVParseNode {
                 name: "main".to_owned(),
-                children: vec![UVParseBody::String(UVParseLiteral {
+                children: vec![UVParseBody::String(TypeWithSpan {
                     value: "literal".to_owned(),
                     span: Span::new(6, 13)
                 })],

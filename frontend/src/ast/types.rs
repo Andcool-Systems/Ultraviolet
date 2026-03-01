@@ -1,6 +1,6 @@
 use crate::{
     ast::traits::{GetType, IsAssignable, StringToUVType},
-    types::Span,
+    types::{Span, TypeWithSpan},
 };
 
 /// Typed value container
@@ -63,18 +63,6 @@ impl StringToUVType for String {
             "null" => Some(UVType::Null),
             _ => None,
         }
-    }
-}
-
-#[derive(Debug)]
-pub struct TypeWithSpan<T> {
-    pub value: T,
-    pub span: Span,
-}
-
-impl<T> TypeWithSpan<T> {
-    pub fn new(value: T, span: Span) -> Self {
-        Self { value, span }
     }
 }
 

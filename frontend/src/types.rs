@@ -102,3 +102,15 @@ impl Default for Span {
         Self { start: 0, end: 0 }
     }
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TypeWithSpan<T> {
+    pub value: T,
+    pub span: Span,
+}
+
+impl<T> TypeWithSpan<T> {
+    pub fn new(value: T, span: Span) -> Self {
+        Self { value, span }
+    }
+}

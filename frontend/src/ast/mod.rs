@@ -5,11 +5,12 @@ use regex::Regex;
 use crate::{
     ast::{
         traits::StringToUVType,
-        types::{ASTBlockType, ProgramBlock, TypeWithSpan, VariableDefinition},
+        types::{ASTBlockType, ProgramBlock, VariableDefinition},
         values::parse_value,
     },
     errors::SpannedError,
     tokens_parser::types::{UVParseBody, UVParseNode},
+    types::TypeWithSpan,
 };
 
 mod traits;
