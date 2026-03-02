@@ -38,6 +38,7 @@ impl Lexer {
             self.tokens.extend(iteration_buffer);
         }
 
+        // If literal is a raw – disable trimming
         let trim_end = if matches!(self.parse_state, LexerParseState::Default) {
             true
         } else {

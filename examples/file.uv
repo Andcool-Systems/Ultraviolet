@@ -2,6 +2,10 @@
 
     <head></head>
     <main>
+        <union>
+            <int />
+            <null />
+        </union>
         <let>
             <name>aa</name>
             <value>

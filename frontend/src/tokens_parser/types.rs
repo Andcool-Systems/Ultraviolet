@@ -67,6 +67,17 @@ impl UVParseNode {
             .cloned()
             .collect()
     }
+
+    /// Get all nested tags (nodes)
+    pub fn get_all_tags(&self) -> Vec<UVParseNode> {
+        self.children
+            .iter()
+            .filter_map(|ch| match ch {
+                UVParseBody::Tag(node) => Some((**node).clone()),
+                UVParseBody::String(_) => None,
+            })
+            .collect()
+    }
 }
 
 // -------------------------------------

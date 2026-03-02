@@ -5,6 +5,7 @@ use regex::Regex;
 use crate::{
     ast::{
         traits::StringToUVType,
+        type_parser::parse_type,
         types::{ASTBlockType, ProgramBlock, VariableDefinition},
         values::parse_value,
     },
@@ -15,6 +16,7 @@ use crate::{
 use once_cell::sync::Lazy;
 
 mod traits;
+mod type_parser;
 mod types;
 mod values;
 
@@ -38,17 +40,23 @@ pub fn gen_main_ast(parse_tree: UVParseNode) -> GeneratorOutputType {
     Ok(parse_program_block(parse_tree)?)
 }
 
-pub fn generate_ast(parse_tree: UVParseNode) -> GeneratorOutputType {
-    Ok(match parse_tree.name.as_str() {
-        "let" => parse_var_definition(parse_tree)?,
+pub fn generate_ast(node: UVParseNode) -> GeneratorOutputType {
+    Ok(match node.name.as_str() {
+        "let" => parse_var_definition(node)?,
+
+        // Type parsing
+        name if name.to_uvtype().is_some() && node.self_closing => parse_type(node)?,
+        "union" if !node.self_closing => parse_type(node)?,
 
         // Values such as int, float, etc.
-        name if name.to_uvtype().is_some() => parse_value(parse_tree)?,
+        // FIXME: Types such as <null /> require more complex handling to
+        // explicitly separate values ​​and types within the AST
+        name if name.to_uvtype().is_some() => parse_value(node)?,
 
         name => {
             return Err(SpannedError::new(
                 format!("Unexpected <{name}> tag"),
-                parse_tree.span.clone(),
+                node.span.clone(),
             ));
         }
     })
