@@ -243,6 +243,12 @@ mod tests {
         );
 
         assert_eq!(
+            UVType::Union(vec![UVType::Int, UVType::Float])
+                .is_assignable_from(&UVType::Union(vec![UVType::Int])),
+            true
+        );
+
+        assert_eq!(
             UVType::Int.is_assignable_from(&UVType::Union(vec![UVType::Int, UVType::Null])),
             false
         );
