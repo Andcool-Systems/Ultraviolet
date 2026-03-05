@@ -3,7 +3,7 @@ use colored::Colorize;
 use crate::{
     ast::{
         GeneratorOutputType, generate_ast, is_valid_identifier,
-        types::{ASTBlockType, VariableAssign, VariableDefinition},
+        types::{ASTBlockType, VariableAccess, VariableAssign, VariableDefinition},
     },
     errors::SpannedError,
     tokens_parser::types::UVParseNode,
@@ -105,6 +105,21 @@ pub fn parse_var_assign(node: &UVParseNode) -> GeneratorOutputType {
     Ok(ASTBlockType::VariableAssignment(VariableAssign {
         name: node.name.clone(),
         value: Spanned::new(Box::new(generate_ast(value)?), value.span),
+        span: node.span,
+    }))
+}
+
+/// Parse variable access block
+pub fn parse_var_access(node: &UVParseNode) -> GeneratorOutputType {
+    if !node.self_closing {
+        return Err(SpannedError::new(
+            "Variable access block should be self-closing",
+            node.span,
+        ));
+    }
+
+    Ok(ASTBlockType::VariableAccess(VariableAccess {
+        name: node.name.clone(),
         span: node.span,
     }))
 }

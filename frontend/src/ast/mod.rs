@@ -8,7 +8,7 @@ use crate::{
         type_parser::parse_type,
         types::{ASTBlockType, ProgramBlock},
         values::parse_value,
-        variables::{parse_var_assign, parse_var_definition},
+        variables::{parse_var_access, parse_var_assign, parse_var_definition},
     },
     errors::SpannedError,
     tokens_parser::types::UVParseNode,
@@ -74,7 +74,11 @@ pub fn generate_ast(node: &UVParseNode) -> GeneratorOutputType {
         // Parse math operations, such as sum, div, etc.
         name if name.to_uvmath().is_some() && !node.self_closing => parse_math_op(node)?,
 
+        // Parse variable assign
         name if !node.self_closing => parse_var_assign(node)?,
+
+        // Parse variable access
+        name if node.self_closing => parse_var_access(node)?,
 
         name => {
             return Err(SpannedError::new(

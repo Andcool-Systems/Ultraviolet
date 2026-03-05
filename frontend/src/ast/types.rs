@@ -132,7 +132,7 @@ pub enum ASTBlockType {
 
     FunctionCall(),
     VariableAssignment(VariableAssign),
-    VariableAccess(),
+    VariableAccess(VariableAccess),
 
     ConditionalOp(),
 
@@ -183,7 +183,15 @@ pub struct VariableAssign {
     pub name: String,
     pub value: Spanned<Box<ASTBlockType>>,
 
-    pub span: Span
+    pub span: Span,
+}
+
+// ------------------------ Variable Access ----------------------------------
+
+#[derive(Debug)]
+pub struct VariableAccess {
+    pub name: String,
+    pub span: Span,
 }
 
 // ------------------------ Math Operations ----------------------------------
