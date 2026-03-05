@@ -146,7 +146,7 @@ pub enum ASTBlockType {
     ForLoop(),
     WhileLoop(),
 
-    Value(UVValue),
+    Value(Spanned<UVValue>),
     Type(UVType),
 
     GroupBlock(),

@@ -1,3 +1,4 @@
+use crate::types::Spanned;
 use crate::{
     ast::{
         GeneratorOutputType,
@@ -10,22 +11,25 @@ use crate::{
 /// Parse UVValues.
 /// Caller must guarantee, that tag name is one of data types!
 pub fn parse_value(node: &UVParseNode) -> GeneratorOutputType {
-    Ok(match node.name.as_str() {
-        "int" => ASTBlockType::Value(UVValue::Int(parse_int(node)?)),
-        "float" => ASTBlockType::Value(UVValue::Float(parse_float(node)?)),
-        "str" => ASTBlockType::Value(UVValue::String(parse_str(node))),
-        "bool" => ASTBlockType::Value(UVValue::Boolean(parse_boolean(node)?)),
-        "null" => {
-            validate_null(&node)?;
-            ASTBlockType::Value(UVValue::Null)
-        }
-        _ => {
-            return Err(SpannedError::new(
-                format!("Unknown value type `{}`", node.name),
-                node.span,
-            ));
-        }
-    })
+    Ok(ASTBlockType::Value(Spanned::new(
+        match node.name.as_str() {
+            "int" => UVValue::Int(parse_int(node)?),
+            "float" => UVValue::Float(parse_float(node)?),
+            "str" => UVValue::String(parse_str(node)),
+            "bool" => UVValue::Boolean(parse_boolean(node)?),
+            "null" => {
+                validate_null(&node)?;
+                UVValue::Null
+            }
+            _ => {
+                return Err(SpannedError::new(
+                    format!("Unknown value type `{}`", node.name),
+                    node.span,
+                ));
+            }
+        },
+        node.span,
+    )))
 }
 
 /// Guarantee, that node has only one child and this child is literal
