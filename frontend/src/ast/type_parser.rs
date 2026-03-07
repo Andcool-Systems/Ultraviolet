@@ -58,7 +58,12 @@ fn parse_union(node: &UVParseNode) -> Result<UVType, SpannedError> {
     }
 
     if node.children_len() == 1 {
-        return Ok(parse(node.get_tag_at(0).unwrap())?);
+        let t = node.get_tag_at(0).ok_or(SpannedError::new(
+            "[INTERNAL ERROR] Cannot get inner tag inside `union` block",
+            node.span,
+        ))?;
+
+        return Ok(parse(t)?);
     }
 
     let types = node

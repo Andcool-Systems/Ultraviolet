@@ -5,6 +5,7 @@ use crate::{
     ast::{
         compare_op::parse_compare_op,
         logical_op::parse_logical_op,
+        loops::parse_for_loop,
         math_op::parse_math_op,
         traits::{StringToUVCompareOp, StringToUVLogicalOp, StringToUVMathOp, StringToUVType},
         type_parser::parse_type,
@@ -19,6 +20,7 @@ use once_cell::sync::Lazy;
 
 mod compare_op;
 mod logical_op;
+mod loops;
 mod math_op;
 mod traits;
 mod type_parser;
@@ -65,7 +67,11 @@ pub fn gen_main_ast(node: &UVParseNode) -> GeneratorOutputType {
 /// Main recursively invoked parsing function
 pub fn generate_ast(node: &UVParseNode) -> GeneratorOutputType {
     Ok(match node.name.as_str() {
-        "let" => parse_var_definition(node)?,
+        // Parse variable declaration
+        "let" if !node.self_closing => parse_var_definition(node)?,
+
+        // Parse for loop declaration
+        "for" if !node.self_closing => parse_for_loop(node)?,
 
         // Type parsing
         // FIXME: Parsing of types should only occur in special places
@@ -103,7 +109,11 @@ pub fn generate_ast(node: &UVParseNode) -> GeneratorOutputType {
 /// Parse children in head and main tags
 fn parse_root_children(node: &UVParseNode) -> Result<Vec<ASTBlockType>, SpannedError> {
     if !node.all_tags() {
-        let first_literal = node.get_inner_literal().unwrap();
+        let first_literal = node.get_inner_literal().ok_or(SpannedError::new(
+            "[INTERNAL ERROR] Cannot get inner literal for error",
+            node.span,
+        ))?;
+
         return Err(SpannedError::new(
             "Unexpected unwrapped literal in root tag",
             first_literal.span,

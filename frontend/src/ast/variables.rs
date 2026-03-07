@@ -14,7 +14,11 @@ use crate::{
 pub fn parse_var_definition(node: &UVParseNode) -> GeneratorOutputType {
     let extra = node.search_extra_children(vec!["name", "value", "const"]);
     if !extra.is_empty() {
-        let first = extra.first().unwrap();
+        let first = extra.first().ok_or(SpannedError::new(
+            "[INTERNAL ERROR] Cannot get first extra child",
+            node.span,
+        ))?;
+
         return Err(SpannedError::new(
             "Found extra children for variable definition",
             first.get_span(),
@@ -30,7 +34,10 @@ pub fn parse_var_definition(node: &UVParseNode) -> GeneratorOutputType {
         return Err(SpannedError::new("Invalid variable name", name_block.span));
     }
 
-    let name = name_block.get_inner_literal().unwrap(); // This unwrap is unreachable due checks above
+    let name = name_block.get_inner_literal().ok_or(SpannedError::new(
+        "[INTERNAL ERROR] Cannot get inner literal",
+        node.span,
+    ))?;
 
     if !is_valid_identifier(&name.value) {
         return Err(SpannedError::new(
@@ -54,7 +61,11 @@ pub fn parse_var_definition(node: &UVParseNode) -> GeneratorOutputType {
         ));
     }
 
-    let value = value_block.get_tag_at(0).unwrap(); // This unwrap is unreachable due checks above
+    let value = value_block.get_tag_at(0).ok_or(SpannedError::new(
+        "[INTERNAL ERROR] Cannot get inner tag",
+        node.span,
+    ))?;
+
     let is_const = match node.get_child_by_name("const") {
         Some(c) if !c.self_closing => {
             return Err(SpannedError::new(
@@ -81,6 +92,7 @@ pub fn parse_var_assign(node: &UVParseNode) -> GeneratorOutputType {
             "[INTERNAL ERROR] Cannot get inner literal for error",
             node.span,
         ))?;
+
         return Err(SpannedError::new(
             "Cannot assign literal to a variable",
             unexpected_lit.span,
@@ -92,6 +104,7 @@ pub fn parse_var_assign(node: &UVParseNode) -> GeneratorOutputType {
             "[INTERNAL ERROR] Cannot get inner child for error",
             node.span,
         ))?;
+
         return Err(SpannedError::new(
             "Variable assign should have only one nested tag",
             extra.get_span(),

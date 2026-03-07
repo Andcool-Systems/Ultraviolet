@@ -1,8 +1,8 @@
 use crate::{
     ast::{
         GeneratorOutputType, generate_ast,
-        traits::{ArgumentsCount, IsVariadic, StringToUVLogicalOp},
-        types::{ASTBlockType, CompareOp, LogicalOp},
+        traits::{ArgumentsCount, StringToUVLogicalOp},
+        types::{ASTBlockType, LogicalOp},
     },
     errors::SpannedError,
     tokens_parser::types::UVParseNode,

@@ -2,9 +2,24 @@
 
     <head></head>
     <main>
-        <not>
-            <int>12</int>
-        </not>
+        <for>
+            <iterator>iterator_name</iterator>
+            <start>
+                <int>0</int>
+            </start>
+            <end>
+                <int>10</int>
+            </end>
+            <!-- [OPTIONAL] Step -->
+            <step>
+                <float>0.5</float>
+            </step>
+        
+            <body>
+                <!-- Loop body -->
+            </body>
+            <ss/>
+        </for>
     </main>
 
 </program>
