@@ -38,7 +38,10 @@ pub fn init_builtin_constants(env: EnvRef<RTVariable>) {
         );
     }
 
-    borrowed_env.define_variable("math", RTVariable::new_from(UVRTValue::Module(math_env), true));
+    borrowed_env.define_variable(
+        "math",
+        RTVariable::new_from(UVRTValue::Module(math_env), true),
+    );
 
     let os_env = Environment::<RTVariable>::new();
     {
