@@ -1,5 +1,5 @@
 <main>
-    <namespace math>
+    <namespace m>
         <let>
             <name>pi</name>
             <value>
@@ -9,6 +9,6 @@
     </namespace>
 
     <call println>
-        <math.pi />
+        <m.pi />
     </call>
 </main>

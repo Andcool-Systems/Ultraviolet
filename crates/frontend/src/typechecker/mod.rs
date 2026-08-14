@@ -84,7 +84,6 @@ impl Typechecker {
             ASTBlockType::GroupBlock(g) => self.analyze_group(g, env)?,
             ASTBlockType::Return(r) => self.analyze_return(r, env)?,
             ASTBlockType::Continue(s) | ASTBlockType::Break(s) => {
-                // FIXME: Should it be never?
                 TControlFlow::new_ty(UVType::Never, s.get_span())
             },
 

@@ -1,5 +1,5 @@
 <main>
-    <namespace math>
+    <namespace m>
         <fn>
             <name>double</name>
 
@@ -26,8 +26,8 @@
     </namespace>
 
     <call println>
-        <math.double$>
+        <m.double$>
             <i32>21</i32>
-        </math.double$>
+        </m.double$>
     </call>
 </main>
