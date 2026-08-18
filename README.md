@@ -37,13 +37,6 @@
     <!-- Null can be used as type or as value -->
     <null />
 
-    <!-- Union types -->
-    <!-- Arguments with that type can contain multiple primitives types -->
-    <union>
-        <i32 />
-        <null />
-    </union>
-
 
     <!-- Arithmetical operations -->
 
